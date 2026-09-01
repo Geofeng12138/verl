@@ -717,7 +717,18 @@ class DocTranslator:
                  api_base: str = "", model: str = ""):
         self.api_base = api_base or DEFAULT_API_BASE
         self.model = model or DEFAULT_MODEL
-        self.client = AsyncOpenAI(api_key=api_key, base_url=self.api_base)
+        # Per-request timeout and retry budget (env-tunable). Without a timeout
+        # a hung request (slow gateway, stalled connection) would block the
+        # whole sequential translation for minutes per block.
+        self.client = AsyncOpenAI(
+            api_key=api_key,
+            base_url=self.api_base,
+            timeout=float(os.getenv("LLM_TIMEOUT", "120")),
+            max_retries=int(os.getenv("LLM_MAX_RETRIES", "1")),
+        )
+        # Number of blocks translated concurrently per document. Raising this
+        # shortens total runtime but may hit provider rate limits (429).
+        self._concurrency = max(1, int(os.getenv("LLM_CONCURRENCY", "4")))
         # The skill document (.agent/skills/translate-ascend/skill.md) defines
         # the mandatory translation standard and the authoritative glossary.
         # It is injected into every request's system prompt so the standard is
@@ -806,43 +817,63 @@ class DocTranslator:
         po_entries = parse_pot_file(cache_po)
 
         new_entries = {}
-        en_parts = []
+        en_parts: List[Optional[str]] = [None] * len(pieces)
         translated_new = 0
         reused = 0
         failed = 0
+        pending: List[int] = []
 
-        for text, translatable in pieces:
+        # First pass: fill structural blocks and cache hits, collect the blocks
+        # that still need API translation.
+        for idx, (text, translatable) in enumerate(pieces):
             if not translatable:
-                en_parts.append(text)
+                en_parts[idx] = text
                 continue
             cached = po_entries.get(text)
             if cached and cached.get("msgstr"):
                 new_entries[text] = {"msgid": text, "msgstr": cached["msgstr"], "translated": True}
-                en_parts.append(cached["msgstr"])
+                en_parts[idx] = cached["msgstr"]
                 reused += 1
                 continue
-            try:
-                translation = await self._translate_single(text, name)
-            except AuthenticationError:
-                # Invalid API key / authentication failure. Every remaining
-                # block would fail the same way, so stop the document now and
-                # fail it closed (no output, no cache, nothing to commit).
-                print(f"  AUTH FAIL: {name} (invalid API key) - output NOT written", flush=True)
-                return False
-            if translation is None:
-                # Per-block API error: never store the original Chinese as a
-                # successful translation. Keep the cache entry untranslated so
-                # a later run retries it, and remember that this file failed.
+            pending.append(idx)
+
+        # Translate the pending blocks concurrently (bounded by _concurrency)
+        # and collect results in document order via the original block index.
+        sem = asyncio.Semaphore(self._concurrency)
+
+        async def translate_one(idx: int) -> tuple:
+            text = pieces[idx][0]
+            async with sem:
+                try:
+                    translation = await self._translate_single(text, name)
+                except AuthenticationError:
+                    return idx, None, "AUTH"
+                if translation is None:
+                    return idx, None, None
+                translation = _restore_enumeration_prefix(text, translation)
+                translation = apply_glossary_rules(translation, self._glossary_rules)
+                return idx, translation, "OK"
+
+        auth_failed = False
+        results = await asyncio.gather(*(translate_one(idx) for idx in pending))
+        for idx, translation, status in results:
+            text = pieces[idx][0]
+            if status == "AUTH":
+                auth_failed = True
+            elif status is None:
                 failed += 1
                 new_entries[text] = {"msgid": text, "msgstr": "", "translated": False}
-                en_parts.append(text)
-                continue
-            translation = _restore_enumeration_prefix(text, translation)
-            translation = apply_glossary_rules(translation, self._glossary_rules)
-            new_entries[text] = {"msgid": text, "msgstr": translation, "translated": True}
-            en_parts.append(translation)
-            translated_new += 1
-            await asyncio.sleep(0.3)
+                en_parts[idx] = text
+            else:
+                new_entries[text] = {"msgid": text, "msgstr": translation, "translated": True}
+                en_parts[idx] = translation
+                translated_new += 1
+
+        if auth_failed:
+            # Invalid API key / authentication failure: fail the document
+            # closed (no output, no cache, nothing to commit).
+            print(f"  AUTH FAIL: {name} (invalid API key) - output NOT written", flush=True)
+            return False
 
         if failed > 0:
             # Fail closed: do not write the English doc nor the .po cache, so
@@ -851,7 +882,7 @@ class DocTranslator:
             print(f"  FAIL: {name}: {failed} block(s) failed to translate - output NOT written", flush=True)
             return False
 
-        en_doc = "".join(en_parts)
+        en_doc = "".join(p for p in en_parts if p is not None)
 
         # Nothing changed and the rendered English doc already exists: skip.
         if (not source_changed and translated_new == 0 and dst.exists()
