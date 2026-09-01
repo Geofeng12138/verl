@@ -172,6 +172,8 @@ Rules:
    inline markup (`, **, *), links, and code fences. Do NOT renumber,
    reorder, merge, or split lines, paragraphs, list items, table rows, or
    code blocks.
+2b. Keep the leading whitespace (spaces/tabs) of EVERY line exactly as in
+   the source, especially inside code blocks and indented RST blocks.
 3. Follow the translation standard (Google Developer Documentation Style
    Guide): prefer active voice (imperative for instructions), use simple
    present tense, use second person ("you"), write complete sentences with
@@ -592,6 +594,78 @@ def _restore_enumeration_prefix(msgid: str, msgstr: str) -> str:
     return leading_ws + prefix + stripped
 
 
+def _restore_leading_ws(src: str, trans: str) -> str:
+    """Restore the exact leading whitespace of each source line on the
+    translated text.
+
+    The LLM sometimes drops the indentation of lines inside code blocks when
+    translating Chinese comments (e.g. a bash comment ``  # ...`` becomes
+    ``# ...``). In RST this breaks literal-block indentation and produces
+    docutils errors such as "Unexpected indentation".
+
+    Only applied when both texts have the same number of lines (otherwise the
+    model merged/split lines and we cannot align them safely).
+    """
+    if not src or not trans:
+        return trans
+    src_lines = src.split("\n")
+    tr_lines = trans.split("\n")
+    if len(src_lines) != len(tr_lines):
+        return trans
+    out = []
+    for s, t in zip(src_lines, tr_lines):
+        ws = s[:len(s) - len(s.lstrip(" \t"))]
+        out.append(ws + t.lstrip(" \t"))
+    return "\n".join(out)
+
+
+def _fix_rst_underlines(text: str) -> str:
+    """Extend RST section-title underlines so they are never shorter than the
+    title text.
+
+    RST requires the underline to be at least as long as the title; after
+    translation the English title is often longer than the original Chinese
+    one, but the underline (a separate block that contains no Chinese and is
+    kept verbatim) stays short, which makes docutils emit
+    "Title underline too short" warnings/errors.
+
+    A line followed by a line of only ``= - ~ ^ " # * +`` characters and that
+    is not a list item is treated as a section title and its underline is
+    padded to the title length.
+    """
+    lines = text.split("\n")
+    n = len(lines)
+    for i in range(n - 1):
+        title = lines[i]
+        underline = lines[i + 1]
+        if not title or title[0] in " \t":
+            continue
+        if re.match(r"^(?:[-*] |\d+\. |[#*] )", title):
+            continue
+        if re.fullmatch(r"[=\-~^\"#*+]{2,}", underline):
+            if len(underline) < len(title.rstrip()):
+                lines[i + 1] = underline[0] * len(title.rstrip())
+    return "\n".join(lines)
+
+
+def _strip_rst_fences(text: str) -> str:
+    """Remove stray Markdown code fences (````` ``` `````) from reStructuredText.
+
+    RST literal blocks are indented text and must NOT contain Markdown
+    ````` ``` ````` fences. The LLM sometimes emits fences around RST code
+    blocks; the indented content that RST actually needs is kept verbatim, so
+    dropping the fence lines restores a valid RST literal block.
+
+    Only meaningful for .rst output documents.
+    """
+    out = []
+    for line in text.split("\n"):
+        if re.fullmatch(r"`{3,}[\w+\- ]*", line.strip()):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
 # ---------------------------------------------------------------------------
 # Glossary enforcement
 # ---------------------------------------------------------------------------
@@ -695,7 +769,7 @@ def apply_glossary_rules(text: str, rules: List[tuple]) -> str:
 
     def _protect(m):
         protected.append(m.group(0))
-        return "\x00%d\x00" % (len(protected) - 1)
+        return f"\x00{len(protected) - 1}\x00"
 
     text = re.sub(r"```.*?```", _protect, text, flags=re.DOTALL)
     text = re.sub(r"`[^`\n]+`", _protect, text)
@@ -834,8 +908,9 @@ class DocTranslator:
                 continue
             cached = po_entries.get(text)
             if cached and cached.get("msgstr"):
-                new_entries[text] = {"msgid": text, "msgstr": cached["msgstr"], "translated": True}
-                en_parts[idx] = cached["msgstr"]
+                restored = _restore_leading_ws(text, cached["msgstr"])
+                new_entries[text] = {"msgid": text, "msgstr": restored, "translated": True}
+                en_parts[idx] = restored
                 reused += 1
                 continue
             pending.append(idx)
@@ -863,6 +938,7 @@ class DocTranslator:
                     return idx, None, None, text
                 translation = _restore_enumeration_prefix(text, translation)
                 translation = apply_glossary_rules(translation, self._glossary_rules)
+                translation = _restore_leading_ws(text, translation)
                 return idx, translation, "OK", ""
 
         auth_failed = False
@@ -898,6 +974,12 @@ class DocTranslator:
             return False
 
         en_doc = "".join(p for p in en_parts if p is not None)
+        # RST post-processing so sphinx/docutils do not emit errors:
+        # - section-title underlines are often shorter than the translated title;
+        # - stray Markdown ``` fences are invalid in RST and must be removed.
+        en_doc = _fix_rst_underlines(en_doc)
+        if src.suffix == ".rst":
+            en_doc = _strip_rst_fences(en_doc)
 
         # Nothing changed and the rendered English doc already exists: skip.
         if (not source_changed and translated_new == 0 and dst.exists()

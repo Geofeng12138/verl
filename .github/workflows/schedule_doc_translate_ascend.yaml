@@ -214,7 +214,7 @@ jobs:
           git checkout -b "${BRANCH_NAME}"
 
           count=$(git diff --cached --name-only | wc -l)
-          git commit -s -m "[doc](feat) Auto-translate Chinese docs to English (${count} file(s))"
+          git commit -s -m "[doc] feat: Auto-translate Chinese docs to English (${count} file(s))"
 
           # Try the primary token (PAT if configured, else GITHUB_TOKEN) first.
           # If it is rejected (e.g. stale/expired PAT), retry once with the
@@ -245,10 +245,10 @@ jobs:
           fi
 
           DATE=$(date +%Y-%m-%d)
-          # PR title must match: [<component>](<type>) <subject>
-          # Allowed types: feat | fix | NFC | style | test | chore | revert
-          # Max length: 72 chars
-          TITLE="[doc](feat) Auto-translate Chinese docs to English ${DATE}"
+          # PR title must pass tests/special_sanity/check_pr_title.py:
+          #   [BREAKING][module] type: description
+          #   module in {doc, ...}, type in {feat, fix, refactor, chore, test}
+          TITLE="[doc] feat: Auto-translate Chinese docs to English ${DATE}"
 
           BODY=$(cat <<-BODYEOF
           ## Auto-Translation Summary
