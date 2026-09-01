@@ -32,6 +32,16 @@ on:
         required: false
         default: false
         type: boolean
+      api_base:
+        description: 'LLM API base URL (default: https://st8tp3ajl0df3n8b8l8qu.apigateway-cn-beijing.volceapi.com/v1). Example for Zhipu AI: https://open.bigmodel.cn/api/paas/v4'
+        required: false
+        default: ''
+        type: string
+      model:
+        description: 'LLM model name (default: deepseek-chat). Example for Zhipu AI: glm-4-plus'
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: translation-${{ github.ref }}
@@ -112,10 +122,20 @@ jobs:
             echo "full_translate=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Translate via DeepSeek API
+      - name: Translate via LLM API
         if: steps.detect.outputs.has_changes == 'true'
         env:
+          # The API key used for translation. Store one of these secrets in the repo:
+          #   TRANSLATION_ASCEND - primary key for any OpenAI-compatible provider
+          #   LLM_API_KEY        - legacy generic key (used as fallback)
+          #   DEEPSEEK_API_KEY   - legacy DeepSeek key (used as fallback)
+          TRANSLATION_ASCEND: ${{ secrets.TRANSLATION_ASCEND }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          # Endpoint and model can be overridden per run via the workflow
+          # inputs below, or set permanently via repository variables/environment.
+          LLM_API_BASE: ${{ inputs.api_base }}
+          LLM_MODEL: ${{ inputs.model }}
         run: |
           if [ "${{ steps.detect.outputs.full_translate }}" = "true" ]; then
             python .github/workflows/scripts/translate_md.py \

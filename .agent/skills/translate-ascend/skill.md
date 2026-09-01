@@ -282,5 +282,6 @@ applicable-scope:
 - 中文源文档：`docs/ascend_tutorial/zh/**`（排除 `index.rst`）
 - 英文输出文档：`docs/ascend_tutorial/en/**`（Markdown/RST，镜像目录结构，由 .po 译文渲染生成）
 - 翻译记忆：`docs/ascend_tutorial/locale/en/LC_MESSAGES/**`（.po 缓存，按块存储 msgid/msgstr）
-- 引擎：DeepSeek 聊天 API（`deepseek-chat`）
+- 引擎：OpenAI 兼容的 LLM API（默认端点 `https://st8tp3ajl0df3n8b8l8qu.apigateway-cn-beijing.volceapi.com/v1`、模型 `deepseek-chat`；可通过 `LLM_API_BASE` / `LLM_MODEL` 环境变量或工作流的 `api_base` / `model` 输入切换，例如智谱 `https://open.bigmodel.cn/api/paas/v4` + `glm-4-plus`）
+- 模型配置文档：`.github/workflows/scripts/TRANSLATION_MODEL_CONFIG.md`（如何切换 / 添加翻译模型）
 - 系统提示词包含本技能文档，翻译前强制读取其中的翻译标准（Google 开发者文档风格指南要点），每次翻译请求都会自动遵循这些规则。

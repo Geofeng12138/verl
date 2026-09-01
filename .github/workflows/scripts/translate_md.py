@@ -67,7 +67,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, AuthenticationError
 
 # ---------------------------------------------------------------------------
 # Directory layout (relative to the repository root)
@@ -88,6 +88,20 @@ EXCLUDED_SOURCE_REL = ("index.rst",)
 # .po timestamps use Beijing time (UTC+8) so headers read as local time
 # regardless of the CI runner's timezone (GitHub Actions runs on UTC).
 _BEIJING_TZ = timezone(timedelta(hours=8))
+
+# ---------------------------------------------------------------------------
+# LLM provider configuration
+# ---------------------------------------------------------------------------
+# The translation engine uses the OpenAI-compatible chat-completions API, so
+# any provider with an OpenAI-compatible endpoint can be plugged in by
+# overriding the base URL and model name. The default endpoint below points
+# to a Volcano Engine (Volcengine) API Gateway proxy of an OpenAI-compatible
+# service; the model name can be overridden via LLM_MODEL / --model (e.g. for
+# Zhipu AI: base=https://open.bigmodel.cn/api/paas/v4, model=glm-4-plus).
+# These are also exposed as --api-base / --model CLI arguments and as the
+# workflow_dispatch inputs `api_base` / `model` in the GitHub Actions workflow.
+DEFAULT_API_BASE = "https://st8tp3ajl0df3n8b8l8qu.apigateway-cn-beijing.volceapi.com/v1"
+DEFAULT_MODEL = "deepseek-chat"
 
 # ---------------------------------------------------------------------------
 # Translation skill document
@@ -698,8 +712,11 @@ class DocTranslator:
     """Translate zh source documents into English md/rst documents under
     docs/ascend_tutorial/en/, using .po files as translation memory."""
 
-    def __init__(self, api_key: str, skill_doc: Optional[str] = None):
-        self.client = AsyncOpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    def __init__(self, api_key: str, skill_doc: Optional[str] = None,
+                 api_base: str = "", model: str = ""):
+        self.api_base = api_base or DEFAULT_API_BASE
+        self.model = model or DEFAULT_MODEL
+        self.client = AsyncOpenAI(api_key=api_key, base_url=self.api_base)
         # The skill document (.agent/skills/translate-ascend/skill.md) defines
         # the mandatory translation standard and the authoritative glossary.
         # It is injected into every request's system prompt so the standard is
@@ -726,14 +743,14 @@ class DocTranslator:
         return "\n\n".join(parts)
 
     async def _translate_single(self, content: str, context: str = "") -> Optional[str]:
-        """Translate a single text block via DeepSeek API."""
+        """Translate a single text block via the configured LLM API."""
         prompt = BLOCK_TRANSLATION_PROMPT.replace("{content}", content)
         system = self._system_prompt(context)
 
         trailing_nl = content.endswith("\n")
         try:
             response = await self.client.chat.completions.create(
-                model="deepseek-chat",
+                model=self.model,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": prompt},
@@ -748,6 +765,11 @@ class DocTranslator:
             if trailing_nl and not text.endswith("\n"):
                 text += "\n"
             return text
+        except AuthenticationError:
+            # Invalid API key / authentication failure. Let it propagate so the
+            # caller can fail the whole document immediately instead of wasting
+            # API calls on every remaining block.
+            raise
         except Exception as e:
             print(f"API error translating '{context}': {e}")
             return None
@@ -756,9 +778,15 @@ class DocTranslator:
     async def translate_file(self, src: Path) -> bool:
         """Translate one source document and render the English md/rst output.
 
-        Returns True when something was written (English doc or .po cache),
-        False when the document is unchanged and its English output already
-        exists.
+        Returns True when the file was fully translated and written (English
+        doc and/or .po cache), False when there is nothing to do OR when the
+        translation API failed.
+
+        Fail-closed behavior: when the API fails (e.g. an invalid API key
+        returning 401, or a per-block error), failed blocks are NEVER persisted
+        as if they were translated. The English output document and the .po
+        cache are left untouched and the file is reported as failed, so the
+        workflow never commits documents full of untranslated Chinese text.
         """
         rel = src.relative_to(ZH_DIR)
         dst = EN_DIR / rel
@@ -780,6 +808,7 @@ class DocTranslator:
         en_parts = []
         translated_new = 0
         reused = 0
+        failed = 0
 
         for text, translatable in pieces:
             if not translatable:
@@ -791,16 +820,35 @@ class DocTranslator:
                 en_parts.append(cached["msgstr"])
                 reused += 1
                 continue
-            translation = await self._translate_single(text, name)
+            try:
+                translation = await self._translate_single(text, name)
+            except AuthenticationError:
+                # Invalid API key / authentication failure. Every remaining
+                # block would fail the same way, so stop the document now and
+                # fail it closed (no output, no cache, nothing to commit).
+                print(f"  AUTH FAIL: {name} (invalid API key) - output NOT written", flush=True)
+                return False
             if translation is None:
-                translation = text
-            else:
-                translation = _restore_enumeration_prefix(text, translation)
-                translation = apply_glossary_rules(translation, self._glossary_rules)
+                # Per-block API error: never store the original Chinese as a
+                # successful translation. Keep the cache entry untranslated so
+                # a later run retries it, and remember that this file failed.
+                failed += 1
+                new_entries[text] = {"msgid": text, "msgstr": "", "translated": False}
+                en_parts.append(text)
+                continue
+            translation = _restore_enumeration_prefix(text, translation)
+            translation = apply_glossary_rules(translation, self._glossary_rules)
             new_entries[text] = {"msgid": text, "msgstr": translation, "translated": True}
             en_parts.append(translation)
             translated_new += 1
             await asyncio.sleep(0.3)
+
+        if failed > 0:
+            # Fail closed: do not write the English doc nor the .po cache, so
+            # the workflow never commits a document containing untranslated
+            # Chinese (and never reuses fake translations in later runs).
+            print(f"  FAIL: {name}: {failed} block(s) failed to translate - output NOT written", flush=True)
+            return False
 
         en_doc = "".join(en_parts)
 
@@ -882,7 +930,12 @@ async def async_main():
                         help="Incremental: translate only changed documents/blocks")
     parser.add_argument("--files", help="Comma-separated source file paths under docs/ascend_tutorial/zh")
     parser.add_argument("--output-json", default=os.getenv("OUTPUT_JSON", "/tmp/translation_results.json"))
-    parser.add_argument("--api-key", default=os.getenv("DEEPSEEK_API_KEY"))
+    parser.add_argument("--api-key", default=os.getenv("TRANSLATION_ASCEND", os.getenv("LLM_API_KEY", os.getenv("DEEPSEEK_API_KEY", ""))),
+                        help="LLM API key (env: TRANSLATION_ASCEND, fallback LLM_API_KEY / DEEPSEEK_API_KEY)")
+    parser.add_argument("--api-base", default=os.getenv("LLM_API_BASE", ""),
+                        help=f"OpenAI-compatible API base URL (default: {DEFAULT_API_BASE}, e.g. Zhipu https://open.bigmodel.cn/api/paas/v4)")
+    parser.add_argument("--model", default=os.getenv("LLM_MODEL", ""),
+                        help=f"Model name (default: {DEFAULT_MODEL}, e.g. Zhipu glm-4-plus)")
     parser.add_argument(
         "--skill-doc",
         default=os.getenv("TRANSLATION_SKILL_DOC", ""),
@@ -892,12 +945,16 @@ async def async_main():
 
     output_json = args.output_json
 
-    api_key = args.api_key or os.getenv("DEEPSEEK_API_KEY")
+    api_key = args.api_key or os.getenv("TRANSLATION_ASCEND") or os.getenv("LLM_API_KEY") or os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
-        msg = "DEEPSEEK_API_KEY not set"
+        msg = "LLM API key not set (set TRANSLATION_ASCEND, LLM_API_KEY, or DEEPSEEK_API_KEY)"
         print(f"Error: {msg}", flush=True)
         write_empty_json(output_json, msg)
         return 1
+
+    api_base = args.api_base or DEFAULT_API_BASE
+    model = args.model or DEFAULT_MODEL
+    print(f"LLM provider: {api_base} | model: {model}", flush=True)
 
     # Load the translation skill document (mandatory translation standard and
     # authoritative glossary). It is injected into every translation request.
@@ -942,7 +999,8 @@ async def async_main():
         write_empty_json(output_json, f"no source files to translate ({reason})")
         return 0
 
-    translator = DocTranslator(api_key=api_key, skill_doc=skill_doc)
+    translator = DocTranslator(api_key=api_key, skill_doc=skill_doc,
+                               api_base=args.api_base, model=args.model)
     return await translator.translate_files(src_list, output_json)
 
 
