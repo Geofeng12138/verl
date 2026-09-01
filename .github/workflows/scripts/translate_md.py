@@ -729,6 +729,9 @@ class DocTranslator:
         # Number of blocks translated concurrently per document. Raising this
         # shortens total runtime but may hit provider rate limits (429).
         self._concurrency = max(1, int(os.getenv("LLM_CONCURRENCY", "4")))
+        # Extra per-block retries for transient failures (timeout / 429 / net
+        # jitter). A block is only considered failed after all attempts.
+        self._block_retries = max(0, int(os.getenv("LLM_BLOCK_RETRIES", "2")))
         # The skill document (.agent/skills/translate-ascend/skill.md) defines
         # the mandatory translation standard and the authoritative glossary.
         # It is injected into every request's system prompt so the standard is
@@ -844,24 +847,34 @@ class DocTranslator:
         async def translate_one(idx: int) -> tuple:
             text = pieces[idx][0]
             async with sem:
-                try:
-                    translation = await self._translate_single(text, name)
-                except AuthenticationError:
-                    return idx, None, "AUTH"
+                translation = None
+                for attempt in range(self._block_retries + 1):
+                    try:
+                        translation = await self._translate_single(text, name)
+                    except AuthenticationError:
+                        return idx, None, "AUTH", ""
+                    if translation is not None:
+                        break
+                    # Transient failure (timeout / 429 / net jitter): back off
+                    # and retry before giving up on this block.
+                    if attempt < self._block_retries:
+                        await asyncio.sleep(1.0 * (attempt + 1))
                 if translation is None:
-                    return idx, None, None
+                    return idx, None, None, text
                 translation = _restore_enumeration_prefix(text, translation)
                 translation = apply_glossary_rules(translation, self._glossary_rules)
-                return idx, translation, "OK"
+                return idx, translation, "OK", ""
 
         auth_failed = False
+        failed_previews: List[str] = []
         results = await asyncio.gather(*(translate_one(idx) for idx in pending))
-        for idx, translation, status in results:
+        for idx, translation, status, failed_text in results:
             text = pieces[idx][0]
             if status == "AUTH":
                 auth_failed = True
             elif status is None:
                 failed += 1
+                failed_previews.append(failed_text)
                 new_entries[text] = {"msgid": text, "msgstr": "", "translated": False}
                 en_parts[idx] = text
             else:
@@ -879,7 +892,9 @@ class DocTranslator:
             # Fail closed: do not write the English doc nor the .po cache, so
             # the workflow never commits a document containing untranslated
             # Chinese (and never reuses fake translations in later runs).
+            preview = " | ".join(repr(t[:100]) for t in failed_previews[:3])
             print(f"  FAIL: {name}: {failed} block(s) failed to translate - output NOT written", flush=True)
+            print(f"        failed block preview: {preview}", flush=True)
             return False
 
         en_doc = "".join(p for p in en_parts if p is not None)
@@ -920,11 +935,21 @@ class DocTranslator:
         ok_count = len(ok_files)
         print(f"\nResult: {ok_count}/{total} translated", flush=True)
 
+        # Report failed documents explicitly so a green step never hides
+        # documents that failed to translate.
+        failed_files = [str(src) for src in src_list if str(src) not in ok_files]
+        if failed_files:
+            print(f"FAILED ({len(failed_files)} document(s)):", flush=True)
+            for f in failed_files:
+                print(f"  - {f}", flush=True)
+
         report = {
             "success_files": success_files,
+            "failed_files": failed_files,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "total_files": total,
             "success_count": ok_count,
+            "failed_count": len(failed_files),
         }
         out = Path(output_json)
         out.parent.mkdir(parents=True, exist_ok=True)
