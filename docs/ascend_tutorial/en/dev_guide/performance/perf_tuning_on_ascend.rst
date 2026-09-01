@@ -152,7 +152,7 @@ Megatron fused operators are integrated in MindSpeed. You need to add specific p
        +actor_rollout_ref.actor.megatron.override_transformer_config.use_ascend_mc2=True
 
 General Ascend Configuration
---------------------------
+----------------------------
 
 `Operator dispatch <https://www.hiascend.com/document/detail/zh/Pytorch/730/comref/Envvariables/docs/zh/environment_variable_reference/TASK_QUEUE_ENABLE.md>`_
 ************************************************************************************************************************************************************************************************************
@@ -216,7 +216,7 @@ FSDP
    :header: "FSDP", "Description"
    :widths: 30, 60
 
-"/","Shards only the optimizer (Zero-1)"
+   "/","Shards only the optimizer (Zero-1)"
    SHARD_GRAD_OP,Shards gradients and optimizer (Zero-2)
    "HYBRID_SHARD","Shards weights, gradients, and optimizer (Zero-3)"
    "2D device_mesh+HYBRID_SHARD","Also known as HSDP (FSDP+DDP). For example, with device_mesh=[2,8], every 8 ranks form an FSDP group. FSDP sharding is performed within each group. There are two groups in total, and DDP is performed between the two groups. Gradients are synchronized through allreduce."

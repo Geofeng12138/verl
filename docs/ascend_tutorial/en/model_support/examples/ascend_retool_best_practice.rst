@@ -17,7 +17,7 @@ The use case model scripts and their required hardware conditions are as follows
 .. list-table::
    :header-rows: 1
 
-* - Model
+   * - Model
      - NPU Model
      - Number of Nodes
      - Training and Inference Backend
@@ -59,7 +59,7 @@ Model Training and Evaluation
 1. Model Data Preparation
 ^^^^^^^^^^^
 `Qwen2.5-7B`
-^^^^^^^^^^^
+^^^^^^^^^^^^
 **Download Model Weights**
 
 .. code-block:: bash
@@ -90,7 +90,7 @@ Model Training and Evaluation
 
 .. code-block:: bash
 
-bash recipe/retool/run_qwen2_7b_sft_npu.sh # Adjust the path in the script
+  bash recipe/retool/run_qwen2_7b_sft_npu.sh # Adjust the path in the script
 
 **Merge pre-trained weights to generate a checkpoint**
 
@@ -165,7 +165,7 @@ Modify the following parameters in the model training script according to your a
   experiment_name=qwen2.5-7b_dapo
   default_local_dir=$DATA_ROOT/checkpoint/$experiment_name
 
-# Create a log file
+  # Create a log file
   export TIMESTAMP=$(date +%Y%m%d_%H%M%S)
   LOG_DIR="$HDFS_ROOT/verl/logs/$project_name/$experiment_name"
   # Check whether the path exists

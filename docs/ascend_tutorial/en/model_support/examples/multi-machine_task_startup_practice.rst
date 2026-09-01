@@ -1,5 +1,5 @@
 Multi-Machine Task Startup Operation Guide
-===================================
+==========================================
 
 Last updated: 07/28/2026.
 
@@ -65,34 +65,34 @@ Configure the following environment variables on **all nodes**:
 
 .. code-block:: bash
 
-# Ray log deduplication and detailed error output
+  # Ray log deduplication and detailed error output
   export RAY_DEDUP_LOGS=0
   export HYDRA_FULL_ERROR=1
 
-# Ascend NPU dispatch optimization, set to 1 for graph mode, set to 2 for non-graph mode
+  # Ascend NPU dispatch optimization, set to 1 for graph mode, set to 2 for non-graph mode
   export TASK_QUEUE_ENABLE=1
 
-# HCCL communication timeout configuration (unit: seconds), appropriately increase based on the model size
+  # HCCL communication timeout configuration (unit: seconds), appropriately increase based on the model size
   export HCCL_ASYNC_ERROR_HANDLING=0
   export HCCL_EXEC_TIMEOUT=3600
   export HCCL_CONNECT_TIMEOUT=3600
 
-# Configure the HCCL port range to avoid port conflicts
+  # Configure the HCCL port range to avoid port conflicts
   export HCCL_HOST_SOCKET_PORT_RANGE=60000-60050
   export HCCL_NPU_SOCKET_PORT_RANGE=61000-61050
 
-# NPU visible device configuration
+  # NPU visible device configuration
   export RAY_EXPERIMENTAL_NOSET_ASCEND_RT_VISIBLE_DEVICES=1
   export ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
 
-# Communication network interface configuration. Replace with the actual network interface name of the current node.
+  # Communication network interface configuration. Replace with the actual network interface name of the current node.
   export HCCL_SOCKET_IFNAME="SOCKET IFNAME FOR CURRENT NODE"
   export GLOO_SOCKET_IFNAME="SOCKET IFNAME FOR CURRENT NODE"
 
-# File descriptor limit
+  # File descriptor limit
   ulimit -n 32768
 
-# Optional configuration
+  # Optional configuration
   # Disable Hugging Face asynchronous weight loading to avoid excessively high host memory peaks during the model loading phase in some environments
   export HF_DEACTIVATE_ASYNC_LOAD=1
 
@@ -103,31 +103,31 @@ You can run the following script on all nodes. The script automatically determin
 
 .. code-block:: bash
 
-# Clean up Ray processes that may remain from the previous training
+  # Clean up Ray processes that may remain from the previous training
   pkill -9 python
   ray stop --force
   rm -rf /tmp/ray
 
-# ====== Configuration that users need to modify ======
+  # ====== Configuration that users need to modify ======
   # Training script path
   DEFAULT_SH="./run_*.sh"
   echo "Use $DEFAULT_SH"
 
-# Number of nodes and NPUs per node
+  # Number of nodes and NPUs per node
   NNODES=2
   NPUS_PER_NODE=16
 
-# Master node IP
+  # Master node IP
   MASTER_ADDR="IP FOR MASTER NODE"
 
-# Communication NIC of the current node
+  # Communication NIC of the current node
   SOCKET_IFNAME="Your SOCKET IFNAME"
   # ====== End of configuration ======
 
-# Get the current node IP
+  # Get the current node IP
   CURRENT_IP=$(ifconfig $SOCKET_IFNAME | grep -Eo 'inet (addr:)?([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $NF}')
 
-if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
+  if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
     # ====== Master node ======
     ray start --head --port 6766 --dashboard-host=$MASTER_ADDR --node-ip-address=$CURRENT_IP --dashboard-port=8260 --resources='{"NPU": '$NPUS_PER_NODE'}'
 
@@ -137,7 +137,6 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
         npu_count_int=$(echo "$npu_count" | awk '{print int($1)}')
         device_count=$((npu_count_int / $NPUS_PER_NODE))
 
-```
         if [ "$device_count" -eq "$NNODES" ]; then
             echo "Ray cluster is ready with $device_count devices (from $npu_count NPU resources), starting Python script."
             ray status
@@ -152,7 +151,6 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
     # ====== Worker node ======
     while true; do
         ray start --address="$MASTER_ADDR:6766" --resources='{"NPU": '$NPUS_PER_NODE'}' --node-ip-address=$CURRENT_IP
-```
 
         ray status
         if [ $? -eq 0 ]; then
@@ -172,7 +170,7 @@ if [ "$MASTER_ADDR" = "$CURRENT_IP" ]; then
 .. list-table::
    :header-rows: 1
 
-* - Parameter
+   * - Parameter
      - Description
    * - ``DEFAULT_SH``
      - Path to the configuration shell script used for training, for example, ``run_qwen3moe-30b_grpo_megatron_vllm_npu.sh``

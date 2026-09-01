@@ -23,7 +23,7 @@ Contents
    - `Converting vLLM Backend Scripts to SGLang <#converting-vllm-backend-scripts-to-sglang>`_
 
 Hardware Support
---------
+----------------
 
 - Atlas 200T A2 Box16
 - Atlas 900 A2 PODc
@@ -54,7 +54,7 @@ It is mainly used to check:
 - Whether the training pipeline can complete the first step.
 
 Weight Preparation
-~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 Download the model weights from Hugging Face yourself.
 
@@ -80,7 +80,7 @@ Generated files:
    ~/data/gsm8k/test.parquet
 
 Running method
-~~~~~~
+~~~~~~~~~~~~~~
 
 The related scripts are located in the ``tests/special_npu/quick_start/`` directory.
 
@@ -99,7 +99,7 @@ Quick Start provides four common training and rollout backend combinations. You 
    :header-rows: 1
    :widths: 20 20 20 60
 
-* - Combination
+   * - Combination
      - Training backend
      - Rollout backend
      - Execution method
@@ -132,27 +132,25 @@ verl currently parses common inference parameters. For details, see the ``Server
 You can pass other `SGLang parameters <https://github.com/sgl-project/sglang/blob/v0.5.10/docs/advanced_features/server_arguments.md>`_ using ``engine_kwargs``.
 
 Convert vLLM backend scripts to SGLang
-~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you need to manually convert the vLLM backend inference script to SGLang, add or modify the following parameters.
 
 .. code-block:: bash
 
-# Required
+   # Required
    actor_rollout_ref.rollout.name=sglang \
    +actor_rollout_ref.rollout.engine_kwargs.sglang.attention_backend="ascend" \
 
-```
    # Optional
    # Enable inference EP. For detailed usage, see:
    # https://github.com/sgl-project/sgl-kernel-npu/blob/main/python/deep_ep/README.md
    ++actor_rollout_ref.rollout.engine_kwargs.sglang.deepep_mode="auto" \
    ++actor_rollout_ref.rollout.engine_kwargs.sglang.moe_a2a_backend="deepep" \
-```
 
-# Must be set to True when using multiple DP for MoE models
+   # Must be set to True when using multiple DP for MoE models
    +actor_rollout_ref.rollout.engine_kwargs.sglang.enable_dp_attention=False \
 
-# chunked_prefill is disabled by default
+   # chunked_prefill is disabled by default
    +actor_rollout_ref.rollout.engine_kwargs.sglang.chunked_prefill_size=-1
 

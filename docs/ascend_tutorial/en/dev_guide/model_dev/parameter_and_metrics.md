@@ -441,7 +441,7 @@ The following parameters only exist in the FSDP solution (`_generated_ppo_traine
 
 #### 1.2.3 Reference FSDP Engine Configuration
 
-The structure is the same as the Actor FSDP engine configuration. The main differences are:
+It has the same structure as the Actor FSDP engine configuration. The main differences are:
 
 | Parameter name | Default value | Description |
 |--------|--------|------|
@@ -519,7 +519,7 @@ The following parameters only exist in the Megatron solution (`_generated_ppo_me
 
 #### 1.3.4 Reference Megatron Engine Configuration
 
-The configuration structure is the same as the Actor Megatron engine configuration. The main differences are as follows:
+The structure is the same as the Actor Megatron engine configuration. The main differences are as follows:
 
 | Parameter name | Default value | Description |
 |--------|--------|------|

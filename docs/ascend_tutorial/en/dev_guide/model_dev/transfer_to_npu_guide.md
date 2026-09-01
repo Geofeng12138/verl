@@ -157,11 +157,11 @@ To solve this common problem, the industry introduced the **Routing Replay** mec
 
 * **(1) Vanilla Routing Replay (R2)**: (This corresponds to `actor_rollout_ref.actor.megatron.router_replay.mode="R2"`, and for VeOmni, it is `actor_rollout_ref.actor.veomni.router_replay.mode="R2"`)
 
-* **Mechanism**: During the gradient update phase, the expert paths that the training engine calculated in the previous sampling phase are reproduced.
+  * **Mechanism**: During the gradient update phase, the expert paths that the training engine calculated in the previous sampling phase are reproduced.
   * **Purpose**: R2 mainly mitigates the impact of **policy staleness** on routing. As the policy updates, the routing calculated in the current forward pass may be inconsistent with the routing used to generate the old data. R2 maintains the coherence of the optimization signal by replaying the old routing.
 * **(2) Rollout Routing Replay (R3)**: (corresponds to `actor_rollout_ref.actor.megatron.router_replay.mode="R3"`)
 
-* **Mechanism**: It captures the routing distribution of the inference engine during sequence generation and directly replays it into the training engine.
+  * **Mechanism**: It captures the routing distribution of the inference engine during sequence generation and directly replays it into the training engine.
   * **Purpose**: It simultaneously addresses the two issues of **training-inference skew** and **policy staleness**. It ensures that the expert path used to calculate the loss during the training phase is absolutely consistent with the expert path during actual inference generation.
 
 Therefore, the Routing Replay mechanism effectively bridges the routing gap between inference and training frameworks, whether using R2 to mitigate outdated strategies or R3 to achieve end-to-end alignment. In the training-inference consistency alignment of **large-scale MoE models**, this mechanism has become a key approach to ensure precision alignment and training stability. Currently, mainstream large models such as DeepSeek-V3.2, GLM-5, and MiMo-V2 have all adopted the Routing Replay technology in R3 mode.

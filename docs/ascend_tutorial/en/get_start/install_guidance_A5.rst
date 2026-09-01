@@ -4,7 +4,7 @@ Ascend Installation Guide (A5)
 Last updated: 08/03/2026.
 
 Key Version Support and Dependencies
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ============= ================================================= ===================
 Dependency    Version                                            Description                                               
 ============= ================================================= ===================
@@ -22,20 +22,20 @@ MindSpeed     ``0c6c0ceaa523a96032dee1539a52032155e6404e``      Megatron-LM adap
 ============= ================================================= ===================
 
 Environment Installation Steps
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 vLLM Inference Backend Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code:: bash
 
-#Install vllm
+    #Install vllm
     git clone https://github.com/vllm-project/vllm.git
     cd vllm
     git checkout v0.23.0
     VLLM_TARGET_DEVICE=empty pip install -v -e .
     cd ..
 
-# Install vllm-ascend
+    # Install vllm-ascend
     # Before installation, source the CANN environment first: source /usr/local/Ascend/cann/set_env.sh
     git clone https://github.com/vllm-project/vllm-ascend.git
     cd vllm-ascend
@@ -65,11 +65,11 @@ Instructions for installing MindSpeed, Megatron, and related dependencies from s
     pip install -e .
     cd ..
 
-# Configure environment variables
+    # Configure environment variables
     export PYTHONPATH=$PYTHONPATH:your_path/Megatron-LM
     export PYTHONPATH=$PYTHONPATH:your_path/MindSpeed
 
-# Install mbridge
+    # Install mbridge
     pip install mbridge
 
 Installing verl dependencies

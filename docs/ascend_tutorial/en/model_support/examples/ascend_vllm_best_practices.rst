@@ -33,14 +33,14 @@ In this practice, additionally specify the verl commit ID to avoid introducing o
 
 .. code-block:: bash
 
-cd verl
+    cd verl
     git checkout release/v0.7.1
 Model Training and Evaluation
 -----------------------------------
 1. Model Data Preparation
 ^^^^^^^^^^^
 `Qwen3-30B`_
-^^^^^^^^^^^
+^^^^^^^^^^^^
 **Download Model Weights**
 
 --local-dir: Path to save the model
@@ -60,7 +60,7 @@ Model Training and Evaluation
 
 .. code-block:: bash
 
-python scripts/converter_hf_to_mcore.py \
+  python scripts/converter_hf_to_mcore.py \
       --hf_model_path Qwen/Qwen3-30B-A3B-Base \
       --output_path Qwen/Qwen3-30B-A3B-Base-mcore \
       --use_cpu_initialization    # Only work for MoE models
@@ -87,19 +87,19 @@ Modify the following parameters in the model training script based on your actua
     TRAIN_FILE=$RAY_DATA_HOME/dataset/gsm8k/test.parquet
     TEST_FILE=$RAY_DATA_HOME/dataset/gsm8k/test.parquet
 
-#Save frequency. -1 means no saving by default. Modify this parameter if you need to evaluate.
+    #Save frequency. -1 means no saving by default. Modify this parameter if you need to evaluate.
     trainer.save_freq=-1
 
 For single-machine tasks `Qwen3-30B`_, you can directly run the sample script from the verl repository using bash, for example:
 
 .. code-block:: bash 
 
-bash examples/grpo_trainer/run_qwen3moe-30b_grpo_megatron_vllm_npu.sh
+  bash examples/grpo_trainer/run_qwen3moe-30b_grpo_megatron_vllm_npu.sh
 If you want to scale to multiple nodes, we recommend using the following script to launch large-scale multi-node training.
 
 .. code-block:: bash
 
-pkill -9 python
+  pkill -9 python
   ray stop --force
   rm -rf /tmp/ray
   export RAY_DEDUP_LOGS=0
@@ -110,7 +110,7 @@ pkill -9 python
   export HCCL_EXEC_TIMEOUT=3600
   export HCCL_CONNECT_TIMEOUT=3600
 
-export HCCL_HOST_SOCKET_PORT_RANGE=60000-60050
+  export HCCL_HOST_SOCKET_PORT_RANGE=60000-60050
   export HCCL_NPU_SOCKET_PORT_RANGE=61000-61050
   export RAY_EXPERIMENTAL_NOSET_ASCEND_RT_VISIBLE_DEVICES=1
   export ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
@@ -121,7 +121,7 @@ export HCCL_HOST_SOCKET_PORT_RANGE=60000-60050
   ulimit -n 32768
   mkdir logs
 
-NNODES=2
+  NNODES=2
   NPUS_PER_NODE=8
   # Change to the master node IP address
   MASTER_ADDR="IP FOR MASTER NODE"
@@ -141,7 +141,7 @@ NNODES=2
         npu_count_int=$(echo "$npu_count" | awk '{print int($1)}')
         device_count=$((npu_count_int / $NPUS_PER_NODE))
 
-# Check whether device_count equals NNODES
+        # Check whether device_count equals NNODES
         if [ "$device_count" -eq "$NNODES" ]; then
             echo "Ray cluster is ready with $device_count devices (from $npu_count NPU resources), starting Python script."
             ray status
@@ -158,7 +158,7 @@ NNODES=2
         # Attempt to connect to the Ray cluster
         ray start --address="$MASTER_ADDR:6766" --resources='{"NPU": '$NPUS_PER_NODE'}' --node-ip-address=$CURRENT_IP
 
-# Check whether the connection is successful
+        # Check whether the connection is successful
         ray status
         if [ $? -eq 0 ]; then
             echo "Successfully connected to the Ray cluster!"
@@ -223,7 +223,7 @@ The Python file content is as follows. The host_port must match the server port.
 
   from ais_bench.benchmark.models import VLLMCustomAPI
 
-models = [
+  models = [
       dict(
           attr="service",
           type=VLLMCustomAPI,

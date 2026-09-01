@@ -12,7 +12,7 @@ Evaluate the model using AISBench, which supports the evaluation of multiple inf
 git clone https://gitee.com/aisbench/benchmark.git
 cd benchmark
 pip install -e .
-~~~
+~~~~~~~~~~~~~~~~
 
 
 ## 2. Download the evaluation dataset
@@ -22,7 +22,7 @@ cd path/to/benchmark/ais_bench/datasets
 wget https://opencompass.oss-cn-shanghai.aliyuncs.com/datasets/data/math.zip
 unzip math.zip
 rm math.zip
-~~~
+~~~~~~~~~~~
 
 ## 3. Weight Conversion
 

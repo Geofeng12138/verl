@@ -14,20 +14,20 @@ Use two-level profile settings to control data collection
 - Role-based profiling control: Use the configuration items in each role to control collection and other parameters.
 
 Global collection control
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Control the collection steps and mode using the parameters in `ppo_trainer.yaml`:
 
 -  global_profiler: Controls the rank and mode for collection
 
--  tool: The collection tool to use. Options include nsys, npu, torch, and torch_memory.
+   -  tool: The collection tool to use. Options include nsys, npu, torch, and torch_memory.
 
--  nsys: The official system-level profiling tool from NVIDIA.
+      -  nsys: The official system-level profiling tool from NVIDIA.
       -  npu: The native profiling tool for Huawei Ascend chips.
       -  torch: The built-in profiler of the PyTorch framework.
       -  torch_memory: The device memory trace analyzer for PyTorch (based on the memory history snapshot feature).
 
--  steps: This parameter can be set to a list of steps to collect, for example [2, 4], indicating that step 2 and step 4 are collected. If this parameter is set to null, no collection is performed.
+   -  steps: This parameter can be set to a list of steps to collect, for example [2, 4], indicating that step 2 and step 4 are collected. If this parameter is set to null, no collection is performed.
    -  save_path: The path for saving collected data. The default value is "outputs/profile".
 
 Role profiler control
@@ -44,20 +44,20 @@ Control the specific collection behavior through the parameters in ``profiler.to
 
 -  level: Collection level — options include level_none, level0, level1, and level2
 
--  level_none: Disables all level-based data collection (turns off profiler_level).
--  level0: Collects high-level application data, low-level NPU data, and operator execution details on the NPU. level0 is the recommended default configuration because it balances data volume and analysis capabilities.
--  level1: Based on level0, adds AscendCL data at the CANN layer and AI Core performance metrics on the NPU.
--  level2: Based on level1, adds Runtime data at the CANN layer and AI CPU metrics.
+   -  level_none: Disables all level-based data collection (turns off profiler_level).
+   -  level0: Collects high-level application data, low-level NPU data, and operator execution details on the NPU. level0 is the recommended default configuration because it balances data volume and analysis capabilities.
+   -  level1: Based on level0, adds AscendCL data at the CANN layer and AI Core performance metrics on the NPU.
+   -  level2: Based on level1, adds Runtime data at the CANN layer and AI CPU metrics.
 
 -  contents: A list of options that control the collection content, for example,
    npu, cpu, memory, shapes, module, and stack.
 
--  npu: Specifies whether to collect device performance data.
--  cpu: Specifies whether to collect host performance data.
--  memory: Specifies whether to enable memory analysis.
--  shapes: Specifies whether to record tensor shapes.
--  module: Specifies whether to record Python call stack information at the framework layer. Compared to `stack`, using `module` to record call stack information is recommended because it generates lower performance overhead.
--  stack: Specifies whether to record operator call stack information.
+   -  npu: Specifies whether to collect device performance data.
+   -  cpu: Specifies whether to collect host performance data.
+   -  memory: Specifies whether to enable memory analysis.
+   -  shapes: Specifies whether to record tensor shapes.
+   -  module: Specifies whether to record Python call stack information at the framework layer. Compared to `stack`, using `module` to record call stack information is recommended because it generates lower performance overhead.
+   -  stack: Specifies whether to record operator call stack information.
 
 -  analysis: Whether to enable automatic data parsing.
 -  discrete: Whether to use discrete mode.
@@ -67,7 +67,7 @@ Control the specific collection behavior through the parameters in ``profiler.to
 Example
 -------
 
-Disable collection
+Disable Collection
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code:: yaml
@@ -80,7 +80,7 @@ End-to-end collection
 
 .. code:: yaml
 
-global_profiler:
+      global_profiler:
          steps: [1, 2, 5]
          save_path: ./outputs/profile
       actor_rollout_ref:
@@ -98,7 +98,6 @@ Separation of Training and Inference Phases
 
 .. code:: yaml
 
-```
       global_profiler:
          steps: [1, 2, 5]
          save_path: ./outputs/profile
@@ -124,7 +123,6 @@ Separation of Training and Inference Phases
                      profile_token_start: 30
                      profile_token_end: 60
          # ref follow actor settings
-```
 
 Quick start
 -----------
@@ -141,7 +139,7 @@ End-to-end collection
 
 .. code:: bash
 
-global_profiler.tool=npu
+        global_profiler.tool=npu
         global_profiler.steps="[1, 2, 5]" # Steps to collect
         global_profiler.save_path=./outputs/profile
         actor_rollout_ref.actor.profiler.enable=True
@@ -155,11 +153,11 @@ global_profiler.tool=npu
 
 
 Lightweight inference data collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-global_profiler.tool=npu
+      global_profiler.tool=npu
       global_profiler.steps="[1, 2, 5]" # Steps to collect
       global_profiler.save_path=./outputs/profile
       actor_rollout_ref.actor.profiler.enable=True
@@ -170,7 +168,7 @@ global_profiler.tool=npu
       actor_rollout_ref.actor.profiler.tool_config.npu.level=level1
       actor_rollout_ref.actor.profiler.tool_config.npu.analysis=False # Disable automatic data parsing
 
-actor_rollout_ref.rollout.profiler.enable=True
+      actor_rollout_ref.rollout.profiler.enable=True
       actor_rollout_ref.rollout.profiler.all_ranks=False
       actor_rollout_ref.rollout.profiler.ranks="[0]" # Collect data only from rank 0
       # Optional: Collect inference data in a lightweight manner by response token range; if start/stop is not set, collect the entire rollout phase
@@ -186,8 +184,8 @@ In `Agent Loop <../../../../advance/agent_loop.rst>`_ mode, performance data dur
 
 2. Inference engine support: The system currently supports the vLLM and SGLang engines, and no additional setup is required. The details are as follows:
 
-- vLLM engine: Automatically collects performance data of the AsyncLLM scheduling stack and the inference process. It does not support setting analysis (not parsed by default; you must parse it offline) and profiler_level (level1 by default).
-- SGLang engine: Automatically collects performance data of the inference process. It does not support the memory configuration item in contents. It does not support setting analysis (parsed by default) and profiler_level (level0 by default).
+   - vLLM engine: Automatically collects performance data of the AsyncLLM scheduling stack and the inference process. It does not support setting analysis (not parsed by default; you must parse it offline) and profiler_level (level1 by default).
+   - SGLang engine: Automatically collects performance data of the inference process. It does not support the memory configuration item in contents. It does not support setting analysis (parsed by default) and profiler_level (level0 by default).
 
 **Fully Async Policy mode description**:
 
@@ -196,7 +194,7 @@ In `Agent Loop <../../../../advance/agent_loop.rst>`_ mode, performance data dur
 2. Because the AgentLoop collection capability is reused, the precautions in `Fully Async Policy <https://verl.readthedocs.io/en/latest/advance/fully_async.html>`_ mode are the same as those for AgentLoop.
 
 Visualization
-------
+-------------
 
 The collected data is stored in the save_path you set. You can visualize the data using the `MindStudio Insight <https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0002.html>`_ tool.
 
@@ -211,16 +209,16 @@ If the analysis parameter is set to False, perform offline parsing after collect
 
 .. code:: python
 
-import torch_npu
+    import torch_npu
     # Set profiler_path to the parent directory of the "localhost.localdomain_<PID>_<timestamp>_ascend_pt" directory
     torch_npu.profiler.profiler.analyse(profiler_path=profiler_path)
 
 
 Advanced guide: fine-grained collection
---------------------
+---------------------------------------
 
 Background and challenges
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Although the configuration file-based collection method is convenient, it faces challenges in **Long Context** or **Large Global Batch Size** training scenarios.
 Within a complete training step, model computation exhibits high-frequency, repetitive characteristics:
@@ -228,8 +226,8 @@ Within a complete training step, model computation exhibits high-frequency, repe
 1. Rollout phase: Sequence generation (Generate Sequence) is an autoregressive process that involves thousands of forward computations of the Decoder model.
 2. Training phase: To control peak device memory, verl typically adopts the Micro-Batch strategy and splits the massive data stream into multiple micro-batches for computation.
 
-- compute_log_prob (Actor/Ref): It involves multiple rounds of pure forward propagation.
-- update_policy (Actor/Critic): It involves multiple rounds of forward and backward propagation.
+   - compute_log_prob (Actor/Ref): It involves multiple rounds of pure forward propagation.
+   - update_policy (Actor/Critic): It involves multiple rounds of forward and backward propagation.
 
 This feature causes full profiling to generate a massive number of duplicate operator records. The following figure illustrates this:
 
@@ -243,17 +241,17 @@ Solution: Critical Path Sampling
 
 To solve the preceding problems, you can adopt the **critical path sampling** strategy. By using the APIs provided by `torch_npu.profiler <https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0038.html>`_, directly modify the Python source code. This allows you to collect only representative data fragments (for example, a specific Decode Step or the first Micro-Batch).
 
-**Important**
+    **Important**
 
-1. This section involves directly modifying the source code. Back up the files before modifying them, and restore them after debugging is complete.
-2. When using code instrumentation to collect data, **disable global collection** (``global_profiler: steps: null``) in ``ppo_trainer.yaml`` or ``ppo_megatron_trainer.yaml`` to avoid Profiler conflicts.
+    1. This section involves directly modifying the source code. Back up the files before modifying them, and restore them after debugging is complete.
+    2. When using code instrumentation to collect data, **disable global collection** (``global_profiler: steps: null``) in ``ppo_trainer.yaml`` or ``ppo_megatron_trainer.yaml`` to avoid Profiler conflicts.
 
 1. Add a script to control collection granularity
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-export PROFILE_STEP=2 # Collect specified steps
+    export PROFILE_STEP=2 # Collect specified steps
     export ROLLOUT_PROFILE=true
     export UPDATE_PROFILE=true
     export WITH_MODULES=false # Collect Python call stacks
@@ -281,7 +279,7 @@ For the vLLM or SGLang inference engine, you can use the `` schedule `` paramete
           def __init__(self, *args, **kwargs):
               # ... existing code ...
 
-+           # Profile collection
+  +           # Profile collection
   +           import os
   +           import torch_npu
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
@@ -297,9 +295,9 @@ For the vLLM or SGLang inference engine, you can use the `` schedule `` paramete
   +                   record_shapes=os.environ.get('WITH_SHAPE', "false") == "true",
   +                   with_stack=os.environ.get('WITH_STACK', "false") == "true",
   +                   experimental_config=experimental_config,
-  +                   # Skip the first 29 steps, warm up for 1 step, collect 30 steps, and repeat once.
+  +                   # Skip the first 29 steps, warm up for 1 step, collect 30 steps, and repeat 1 time.
   +                   schedule=torch_npu.profiler.schedule(wait=29, warmup=1, active=30, repeat=1),
-  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # Data collection save path and whether to parse online
+  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # Save path for collected data, whether to parse online
   +               )
   +               self.profiler_npu.start()
 
@@ -310,9 +308,9 @@ For the vLLM or SGLang inference engine, you can use the `` schedule `` paramete
               output = self.model_runner.execute_model(scheduler_output,
                                                   intermediate_tensors)
 
-+           import os
+  +           import os
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
-  +               self.profiler_npu.step()  # Drives the schedule to profile some decode steps
+  +               self.profiler_npu.step()  # Drive the schedule to capture data for some decode steps
 
               # ... existing code ...
 
@@ -331,7 +329,7 @@ For the vLLM or SGLang inference engine, you can use the `` schedule `` paramete
           def __init__(self, *args, **kwargs):
               # ... existing init code ...
 
-+           # Profile collection
+  +           # Profile collection
   +           import os
   +           import torch_npu
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
@@ -356,7 +354,7 @@ For the vLLM or SGLang inference engine, you can use the `` schedule `` paramete
           def forward(self, forward_batch, **kwargs):
               # ... existing code ...
 
-+           import os
+  +           import os
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
   +               self.profiler_npu.step()  # Drive the schedule to capture data for some decode steps
 
@@ -390,7 +388,7 @@ of the FSDP engine.
           def train_mini_batch(self, data: TensorDict) -> TensorDict:
              # ...
 
-+          import os
+  +          import os
   +          import torch_npu
   +          if self.step == int(os.environ.get('PROFILE_STEP', 1)) and os.environ.get('UPDATE_PROFILE', "false") == "true":
   +              # Prepare the profiler
@@ -411,12 +409,12 @@ of the FSDP engine.
   +              if str(torch.distributed.get_rank()) in os.environ.get('PROFILE_RANKS', "0").split(','):
   +                  self.prof_npu.start()
 
-for batch_idx, mini_batch_td in enumerate(dataloader):
+             for batch_idx, mini_batch_td in enumerate(dataloader):
                  # ... internally calls self.train_batch(mini_batch_td), which in the engine
                  # executes Forward & Backward for each micro-batch, and completes one optimizer update ...
                  actor_output = self.train_batch(mini_batch_td)
 
-+              if self.step == int(os.environ.get('PROFILE_STEP', 1)) and os.environ.get('UPDATE_PROFILE', "false") == "true":
+  +              if self.step == int(os.environ.get('PROFILE_STEP', 1)) and os.environ.get('UPDATE_PROFILE', "false") == "true":
   +                  # Drive the schedule to collect data for the mini batch. To collect data for the micro batch, move self.prof_npu.step() into the micro_batch loop.
   +                  if str(torch.distributed.get_rank()) in os.environ.get('PROFILE_RANKS', "0").split(','):
   +                      self.prof_npu.step()
@@ -451,14 +449,14 @@ The FSDP backend allows fine-grained control at the Micro-Batch level. You can i
 
 .. code-block:: diff
 
-# ... import dependencies ...
+      # ... import dependencies ...
   +   import torch_npu
 
       class FSDPEngineWithLMHead(FSDPEngine):
 
           def forward_backward_batch(self, data: TensorDict, loss_function, forward_only=False):
 
-+           role = "Ref" if forward_only and not self.optimizer_config else "Actor"
+  +           role = "Ref" if forward_only and not self.optimizer_config else "Actor"
   +           # Prepare the profiler (configuration is the same as above, omitted)
   +           experimental_config = torch_npu.profiler._ExperimentalConfig(...)
   +           self.prof_npu = torch_npu.profiler.profile(
@@ -468,18 +466,18 @@ The FSDP backend allows fine-grained control at the Micro-Batch level. You can i
   +               on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(f"./outputs/{role}_compute_log_prob", analyse_flag=True)
   +           )
 
-+           # forward_backward_batch is shared by ref and actor, and distinguished by the role flag;
+  +           # forward_backward_batch is shared by ref and actor, and distinguished by the role flag;
   +           # If you need to collect actor_compute_log_prob, change it to role == "Actor":
   +           if role == "Ref":
   +               self.prof_npu.start()
 
               for micro_batch in micro_batches:
 
-# ... original computation logic ...
+                  # ... original computation logic ...
                   with torch.no_grad():
                       output = self.forward_step(micro_batch, loss_function, forward_only=True)
 
-+                   # Drive the schedule and collect data for the micro batch
+  +                   # Drive the schedule and collect data for the micro batch
   +                   if role == "Ref":
   +                       self.prof_npu.step()
 

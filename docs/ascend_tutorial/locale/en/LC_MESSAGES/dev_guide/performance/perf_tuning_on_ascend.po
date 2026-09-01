@@ -5,12 +5,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: verl-docs\n"
 
-"POT-Creation-Date: 2026-09-01 21:51+0800\n"
-"PO-Revision-Date: 2026-09-01 21:51+0800\n"
-
 "X-Source-Commit: ca968b96c72ac2b2daceb1e092a2fd6e145e1f5b\n"
 
-"X-Skill-Version: 2.0.0\n"
+"X-Skill-Version: 2.2.0\n"
 
 "Last-Translator: Auto Translation (DeepSeek)\n"
 "Language-Team: English\n"
@@ -429,7 +426,7 @@ msgid ""
 "   NO_SHARD,DDP\n"
 ""
 msgstr ""
-"\"/\",\"Shards only the optimizer (Zero-1)\"\n"
+"   \"/\",\"Shards only the optimizer (Zero-1)\"\n"
 "   SHARD_GRAD_OP,Shards gradients and optimizer (Zero-2)\n"
 "   \"HYBRID_SHARD\",\"Shards weights, gradients, and optimizer (Zero-3)\"\n"
 "   \"2D device_mesh+HYBRID_SHARD\",\"Also known as HSDP (FSDP+DDP). For example, with device_mesh=[2,8], every 8 ranks form an FSDP group. FSDP sharding is performed within each group. There are two groups in total, and DDP is performed between the two groups. Gradients are synchronized through allreduce.\"\n"

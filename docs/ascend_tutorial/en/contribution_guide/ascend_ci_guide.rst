@@ -66,11 +66,11 @@ Datasets and absolute paths on the CI machine:
 
 **Note**
 
-${HOME} is root
+   ${HOME} is root
 
-In GPU use cases, the weights are stored in the ~/models/ directory. If you need to adapt to this, use a symbolic link: ``ln -s /root/.cache/models ~/models``
+   In GPU use cases, the weights are stored in the ~/models/ directory. If you need to adapt to this, use a symbolic link: ``ln -s /root/.cache/models ~/models``
 
-The following is the original dataset. Process the data as needed. An example is as follows.
+   The following is the original dataset. Process the data as needed. An example is as follows.
 
    ``python examples/data_preprocess/gsm8k_multiturn_sft.py --local_dataset_path ${HOME}/.cache/datasets/openai/gsm8k``
 
@@ -91,7 +91,7 @@ The main modifications include:
 .. code-block:: yaml
    :linenos:
 
-name: your_yml_ascend  # Unique identifier of the workflow
+   name: your_yml_ascend  # Unique identifier of the workflow
    # Trigger condition configuration
    on:
      push:
@@ -105,15 +105,15 @@ name: your_yml_ascend  # Unique identifier of the workflow
          - ".github/workflows/your_yml_ascend.yml"  # Must include this workflow file path
          - "path/to/affected_files"               # Related code paths to monitor
 
-# Concurrency control strategy
+   # Concurrency control strategy
    concurrency:
      group: ${{ github.workflow }}-${{ github.ref }}
      cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}  # Cancel in-progress jobs only for non-main branches
 
-permissions:
+   permissions:
      contents: read  # Principle of least privilege
 
-jobs:
+   jobs:
      your_job_name:  # Unique job identifier
        if: github.repository_owner == 'verl-project'  # Run only in the main repository
        runs-on: linux-aarch64-a2-4  # Hardware specification: a2 instance, 4 NPUs
@@ -154,7 +154,7 @@ jobs:
 **Note**
 
 
-Content added to the `${HOME}/.cache/` folder is not deleted after the CI run completes and the container is destroyed. Avoid adding content to this folder.
+   Content added to the `${HOME}/.cache/` folder is not deleted after the CI run completes and the container is destroyed. Avoid adding content to this folder.
 
 
 3. Add unit tests

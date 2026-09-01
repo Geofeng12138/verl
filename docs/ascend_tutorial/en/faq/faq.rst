@@ -6,7 +6,7 @@ Last updated: 05/13/2026.
 This document summarizes common issues and their solutions that you may encounter when running VERL training and inference on an NPU.
 
 Environment Configuration Issues
-----------------------------
+--------------------------------
 
 ### Q1: What should you do if the NPU device is not visible?
 
@@ -16,15 +16,15 @@ Environment Configuration Issues
 
 .. code-block:: bash
 
-# Check device visibility
+   # Check device visibility
    echo $ASCEND_RT_VISIBLE_DEVICES
 
-# Set the visible devices and disable automatic setting by Ray
+   # Set the visible devices and disable automatic setting by Ray
    export ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
    export RAY_EXPERIMENTAL_NOSET_ASCEND_RT_VISIBLE_DEVICES=1
 
-# Check the driver status
-npu-smi info
+   # Check the driver status
+   npu-smi info
 
 Debugging and diagnostics
 -------------------------
@@ -54,14 +54,14 @@ Use the VERL built-in profiler:
 
 .. code-block:: bash
 
-# VERL framework logs
+   # VERL framework logs
    export VERL_LOGGING_LEVEL=DEBUG
 
-# Ascend NPU log (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR)
-export ASCEND_GLOBAL_LOG_LEVEL=0
-export ASCEND_SLOG_PRINT_TO_STDOUT=1
+   # Ascend NPU log (0=DEBUG, 1=INFO, 2=WARNING, 3=ERROR)
+   export ASCEND_GLOBAL_LOG_LEVEL=0
+   export ASCEND_SLOG_PRINT_TO_STDOUT=1
 
-# HCCL communication logs
+   # HCCL communication logs
    export HCCL_DEBUG=INFO
 
 Common error messages
@@ -104,11 +104,11 @@ Take ``model.embed_tokens.weight`` in this example as an example:
 
 .. code-block:: text
 
-Tensor shape: torch.Size([151936, 4096])
+   Tensor shape: torch.Size([151936, 4096])
    Data type: torch.float32 (4 bytes)
    Weight size = 151936 × 4096 × 4 = 2,483,027,968 bytes ≈ 2369 MB
 
-The default bucket size = 2048 MB < 2369 MB → triggers an assertion failure
+   The default bucket size = 2048 MB < 2369 MB → triggers an assertion failure
 
 **Solution**: Add the ``update_weights_bucket_megabytes`` parameter when starting training so that the bucket capacity is greater than the memory usage of the largest weight tensor:
 
@@ -131,7 +131,7 @@ The default bucket size = 2048 MB < 2369 MB → triggers an assertion failure
 .. list-table::
    :header-rows: 1
 
-* - Model size
+   * - Model size
      - Typical maximum weight shape
      - Recommended bucket size
    * - 7B (Qwen2 and so on)
@@ -164,20 +164,20 @@ The default bucket size = 2048 MB < 2369 MB → triggers an assertion failure
 
 .. code-block:: bash
 
-# Assume the checkpoint is saved in the /path/to/ckpt/ directory on the rank 0 node
+   # Assume the checkpoint is saved in the /path/to/ckpt/ directory on the rank 0 node
    # Copy the metadata file from the rank 0 node to all other nodes
 
-# Files to copy
+   # Files to copy
    /path/to/ckpt/common.pt
    /path/to/ckpt/.metadata
    /path/to/ckpt/metadata.json
 
-# Example: Copy to other nodes using scp
+   # Example: Copy to other nodes using scp
    scp /path/to/ckpt/common.pt node1:/path/to/ckpt/
    scp /path/to/ckpt/.metadata node1:/path/to/ckpt/
    scp /path/to/ckpt/metadata.json node1:/path/to/ckpt/
 
-# Repeat the preceding operations for all nodes
+   # Repeat the preceding operations for all nodes
 
 **Precautions**:
 
