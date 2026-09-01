@@ -96,12 +96,13 @@ _BEIJING_TZ = timezone(timedelta(hours=8))
 # any provider with an OpenAI-compatible endpoint can be plugged in by
 # overriding the base URL and model name. The default endpoint below points
 # to a Volcano Engine (Volcengine) API Gateway proxy of an OpenAI-compatible
-# service; the model name can be overridden via LLM_MODEL / --model (e.g. for
-# Zhipu AI: base=https://open.bigmodel.cn/api/paas/v4, model=glm-4-plus).
+# service; the default model is glm-5.2 (Zhipu AI) exposed through that
+# gateway. Both can be overridden via LLM_API_BASE / LLM_MODEL / --api-base /
+# --model.
 # These are also exposed as --api-base / --model CLI arguments and as the
 # workflow_dispatch inputs `api_base` / `model` in the GitHub Actions workflow.
 DEFAULT_API_BASE = "https://st8tp3ajl0df3n8b8l8qu.apigateway-cn-beijing.volceapi.com/v1"
-DEFAULT_MODEL = "deepseek-chat"
+DEFAULT_MODEL = "glm-5.2"
 
 # ---------------------------------------------------------------------------
 # Translation skill document

@@ -38,7 +38,7 @@ on:
         default: ''
         type: string
       model:
-        description: 'LLM model name (default: deepseek-chat). Example for Zhipu AI: glm-4-plus'
+        description: 'LLM model name (default: glm-5.2). Example for Zhipu AI: glm-4-plus'
         required: false
         default: ''
         type: string
