@@ -1,77 +1,73 @@
-Profiling Data Collection Guide
+Profiling采集指导
 ==================================================================================
 
 Last updated: 07/13/2026.
 
-This is a tutorial for data collection using the GRPO or DAPO algorithm based on the FSDP or MindSpeed (Megatron) backend on Ascend devices.
+这是一份在昇腾设备上基于FSDP或MindSpeed(Megatron)后端，使用GRPO或DAPO算法进行数据采集的教程。
 
-Configuration
--------------
+配置
+----
 
-Use two levels of profile settings to control data collection
+使用两级profile设置来控制数据采集
 
-- Global collection control: Use parameters in verl/trainer/config/ppo_trainer.yaml (FSDP) or verl/trainer/config/ppo_megatron_trainer.yaml (MindSpeed) to control the collection mode and steps.
-- Role profile control: Use parameters in each role to control various parameters.
+- 全局采集控制：使用verl/trainer/config/ppo_trainer.yaml(FSDP)，或verl/trainer/config/ppo_megatron_trainer.yaml(MindSpeed)中的配置项控制采集的模式和步数。
+- 角色profile控制：通过每个角色中的配置项控制采集等参数。
 
-Global Collection Control
-~~~~~~~~~~~~~~~~~~~~~~~~~
+全局采集控制
+~~~~~~~~~~~~
 
-Use parameters in ppo_trainer.yaml to control the collection steps and mode:
+通过 ppo_trainer.yaml 中的参数控制采集步数和模式：
 
--  global_profiler: Control the ranks and mode of profiling
+-  global_profiler: 控制采集的rank和模式
 
-   -  tool: The profiling tool to use, options are nsys, npu, torch,
-      torch_memory.
+   -  tool: 使用的采集工具，选项有 nsys、npu、torch、torch_memory。
 
-      -  nsys: NVIDIA's official system-level performance analysis tool.
-      -  npu: Huawei Ascend chip's native performance analysis tool.
-      -  torch: PyTorch framework's built-in profiler.
-      -  torch_memory: PyTorch's memory trace analyzer (based on memory history snapshot functionality).
+      -  nsys: NVIDIA 官方的系统级性能分析工具。
+      -  npu: 华为昇腾（Ascend）芯片的原生性能分析工具。
+      -  torch: PyTorch 框架内置的性能分析器。
+      -  torch_memory: PyTorch 的显存轨迹分析器（基于显存历史快照功能）。
 
-   -  steps: This parameter can be set as a list that has
-      collection steps, such as [2, 4], which means it will collect steps 2
-      and 4. If set to null, no collection occurs.
-   -  save_path: The path to save the collected data. Default is
-      "outputs/profile".
+   -  steps: 此参数可以设置为包含采集步数的列表，例如 [2, 4]，表示将采集第2步和第4步。如果设置为 null，则不进行采集。
+   -  save_path: 保存采集数据的路径。默认值为 "outputs/profile"。
 
-Role Profiler Control
+角色profiler控制
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In each role's ``profiler`` field, you can control the collection mode for that role.
+在每个角色的 ``profiler`` 字段中，您可以控制该角色的采集模式。
 
--  enable: Whether to enable profiling for this role.
--  all_ranks: Whether to collect data from all ranks.
--  ranks: A list of ranks to collect data from. If empty, no data is collected.
--  tool_config: Configuration for the profiling tool used by this role.
+-  enable: 是否为此角色启用性能分析。
+-  all_ranks: 是否从所有rank收集数据。
+-  ranks: 要收集数据的rank列表。如果为空，则不收集数据。
+-  tool_config: 此角色使用的性能分析工具的配置。
 
-Use parameters in each role's ``profiler.tool_config.npu`` to control specific collection behavior:
+通过每个角色的 ``profiler.tool_config.npu`` 中的参数控制具体采集行为：
 
--  level: Collection level - options are level_none, level0, level1, and level2
+-  level: 采集级别——选项有 level_none、level0、level1 和 level2
 
-   -  level_none: Disables all level-based data collection (turns off profiler_level).
-   -  level0: Collects high-level application data, underlying NPU data, and operator execution details on NPU. After balancing data volume and analytical capability, level0 is the recommended default configuration.
-   -  level1: Extends level0 by adding CANN-layer AscendCL data and AI Core performance metrics on NPU.
-   -  level2: Extends level1 by adding CANN-layer Runtime data and AI CPU metrics.
+   -  level_none: 禁用所有基于级别的数据采集（关闭 profiler_level）。
+   -  level0: 采集高级应用数据、底层NPU数据和NPU上的算子执行详情。在权衡数据量和分析能力后，level0是推荐的默认配置。
+   -  level1: 在level0基础上增加CANN层AscendCL数据和NPU上的AI Core性能指标。
+   -  level2: 在level1基础上增加CANN层Runtime数据和AI CPU指标。
 
--  contents: A list of options to control the collection content, for example
-   npu, cpu, memory, shapes, module, stack.
+-  contents: 控制采集内容的选项列表，例如
+   npu、cpu、memory、shapes、module、stack。
 
-   -  npu: Whether to collect device-side performance data.
-   -  cpu: Whether to collect host-side performance data.
-   -  memory: Whether to enable memory analysis.
-   -  shapes: Whether to record tensor shapes.
-   -  module: Whether to record framework-layer Python call stack information. Compared to stack, it is recommended to use module for recording call stack information, as it incurs lower performance overhead.
-   -  stack: Whether to record operator call stack information.
+   -  npu: 是否采集设备端性能数据。
+   -  cpu: 是否采集主机端性能数据。
+   -  memory: 是否启用内存分析。
+   -  shapes: 是否记录张量形状。
+   -  module: 是否记录框架层Python调用栈信息。相较于stack，更推荐使用module记录调用栈信息，因其产生的性能膨胀更低。
+   -  stack: 是否记录算子调用栈信息。
 
--  analysis: Whether to enable automatic data parsing.
--  discrete: Whether to use discrete mode.
--  profile_token_start: Effective only for the rollout role; defines the start response-token index for rollout decoding collection. It is applied only when valid (0-based, ``profile_token_end > profile_token_start``, and the window is within response length).
--  profile_token_end: Effective only for the rollout role; defines the stop response-token index (exclusive) for rollout decoding collection. It is applied only when valid (0-based, ``profile_token_end > profile_token_start``, and the window is within response length).
+-  analysis: 是否启用自动数据解析。
+-  discrete: 是否使用离散模式。
+-  profile_token_start：仅在 rollout role 下生效，用于指定 rollout 解码阶段的采集起始 response token；参数合法时生效（从 0 开始，满足 ``profile_token_end > profile_token_start``，且区间在 response 长度内）。
+-  profile_token_end：仅在 rollout role 下生效，用于指定 rollout 解码阶段的采集结束 response token（右边界不包含）；参数合法时生效（从 0 开始，满足 ``profile_token_end > profile_token_start``，且区间在 response 长度内）。
 
-Examples
---------
+示例
+----
 
-Disabling Collection
+禁用采集
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code:: yaml
@@ -79,7 +75,7 @@ Disabling Collection
    global_profiler:
      steps: null # disable profile
 
-End-to-End Collection
+端到端采集
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: yaml
@@ -88,17 +84,17 @@ End-to-End Collection
          steps: [1, 2, 5]
          save_path: ./outputs/profile
       actor_rollout_ref:
-         actor:  # Set the profiler collection configuration parameters for the actor role
+         actor:  # 设置 actor role 的 profiler 采集配置参数
             profiler:
                enable: True
                all_ranks: True
                tool_config:
                   npu:
                      discrete: True
-                     contents: [npu, cpu]  # Control collection list, default cpu, npu; can configure memory, shapes, module, etc.
+                     contents: [npu, cpu]  # 控制采集列表，默认cpu、npu，可配置memory、shapes、module等
 
-Separation of Training and Inference Phases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+训练和推理阶段分离
+~~~~~~~~~~~~~~~~~~~~
 
 .. code:: yaml
 
@@ -108,180 +104,182 @@ Separation of Training and Inference Phases
       actor_rollout_ref:
          actor:
             profiler:
-               enable: True  # Set to True to collect the training phase
+               enable: True  # 设置为 True 以采集训练阶段
                all_ranks: False
-               ranks: [0]  # Global Rank 0
+               ranks: [0]  # 全局 Rank 0
                tool_config:
                   npu:
                      discrete: True
                      contents: [npu, cpu]
          rollout:
             profiler:
-               enable: True  # Set to True to collect the inference phase
+               enable: True  # 设置为 True 以采集推理阶段
                all_ranks: False
-               ranks: [0]  # Global GPU rank(s); each is mapped to the replica that owns it
+               ranks: [0]  # 全局 GPU rank；会被映射到拥有该 rank 的推理实例（replica）
                tool_config:
                   npu:
-                     discrete: True  # Discrete mode must be enabled in Agent Loop mode
-                     # Optional: lightweight collection of inference data, collecting by response token interval; when start/stop are not set, the entire rollout phase is collected
+                     discrete: True  # Agent Loop 模式下必须开启离散模式
+                     # 可选：轻量化采集推理数据，按 response token 区间采集；不设置 start/stop 时采集整个 rollout 阶段
                      profile_token_start: 30
                      profile_token_end: 60
          # ref follow actor settings
 
-Quick Start
------------
+快速开始
+--------
 
-Disabling Collection
+禁用采集
 ~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-         global_profiler.steps=null
+            global_profiler.steps=null
 
-End-to-End Collection
+端到端采集
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
         global_profiler.tool=npu
-        global_profiler.steps="[1, 2, 5]" # Collection steps
+        global_profiler.steps="[1, 2, 5]" # 采集步数
         global_profiler.save_path=./outputs/profile
         actor_rollout_ref.actor.profiler.enable=True
         actor_rollout_ref.actor.profiler.all_ranks=False
-        actor_rollout_ref.actor.profiler.ranks="[0]" # Only collect rank 0
-        actor_rollout_ref.actor.profiler.tool_config.npu.discrete=True # Discrete mode is recommended, data of each phase is stored separately
-        actor_rollout_ref.actor.profiler.tool_config.npu.contents="['npu','cpu']" # Control collection list, default cpu, npu; can configure memory, shapes, module, etc.
+        actor_rollout_ref.actor.profiler.ranks="[0]" # 只采集rank0
+        actor_rollout_ref.actor.profiler.tool_config.npu.discrete=True # 推荐使用离散模式，各阶段数据分开存储
+        actor_rollout_ref.actor.profiler.tool_config.npu.contents="['npu','cpu']" # 控制采集列表，默认cpu、npu，可配置memory、shapes、module等
         actor_rollout_ref.actor.profiler.tool_config.npu.level=level1
-        actor_rollout_ref.actor.profiler.tool_config.npu.analysis=False # Disable automatic data parsing
+        actor_rollout_ref.actor.profiler.tool_config.npu.analysis=False # 禁用自动数据解析
         # rollout & ref follow actor settings
 
 
-Lightweight Collection of Inference Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+轻量化采集推理数据
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
       global_profiler.tool=npu
-      global_profiler.steps="[1, 2, 5]" # Collection steps
+      global_profiler.steps="[1, 2, 5]" # 采集步数
       global_profiler.save_path=./outputs/profile
       actor_rollout_ref.actor.profiler.enable=True
       actor_rollout_ref.actor.profiler.all_ranks=False
-      actor_rollout_ref.actor.profiler.ranks="[0]" # Only collect rank 0
-      actor_rollout_ref.actor.profiler.tool_config.npu.discrete=True # Discrete mode is recommended, data of each phase is stored separately
-      actor_rollout_ref.actor.profiler.tool_config.npu.contents="['npu','cpu']" # Control collection list, default cpu, npu; can configure memory, shapes, module, etc.
+      actor_rollout_ref.actor.profiler.ranks="[0]" # 只采集rank0
+      actor_rollout_ref.actor.profiler.tool_config.npu.discrete=True # 推荐使用离散模式，各阶段数据分开存储
+      actor_rollout_ref.actor.profiler.tool_config.npu.contents="['npu','cpu']" # 控制采集列表，默认cpu、npu，可配置memory、shapes、module等
       actor_rollout_ref.actor.profiler.tool_config.npu.level=level1
-      actor_rollout_ref.actor.profiler.tool_config.npu.analysis=False # Disable automatic data parsing
+      actor_rollout_ref.actor.profiler.tool_config.npu.analysis=False # 禁用自动数据解析
 
       actor_rollout_ref.rollout.profiler.enable=True
       actor_rollout_ref.rollout.profiler.all_ranks=False
-      actor_rollout_ref.rollout.profiler.ranks="[0]" # Only collect rank 0 data.
-      # Optional: lightweight collection of inference data, If start and stop are not set, the entire rollout phase is collected.
+      actor_rollout_ref.rollout.profiler.ranks="[0]" # 只采集rank0
+      # 可选：轻量化采集推理数据，按 response token 区间采集；不设置 start/stop 时采集整个 rollout 阶段
       actor_rollout_ref.rollout.profiler.tool_config.npu.profile_token_start=30
       actor_rollout_ref.rollout.profiler.tool_config.npu.profile_token_end=60
       # ref follow actor settings
 
-**Agent Loop Mode Description**:
+**Agent Loop 模式说明**：
 
-In `Agent Loop <../../../../advance/agent_loop.rst>`_ mode, performance data for the Rollout phase **must be collected using discrete mode**. In this case, the Profiler is triggered by the inference engine backend.
+在 `Agent Loop <../../../../advance/agent_loop.rst>`_ 模式下，Rollout 阶段的性能数据 **必须使用离散模式** 采集，此时 Profiler 由推理引擎后端触发。
 
-1. Rank Definition: ranks in the Rollout configuration are global GPU ranks (the same as the training roles). Because a rollout replica spans ``world_size = tensor_model_parallel_size * data_parallel_size * pipeline_model_parallel_size`` GPUs, each listed rank is mapped to the replica that owns it (``replica = rank // world_size``) and that whole replica is profiled; e.g. with ``tp=8``, ``ranks: [0, 8]`` profiles the replicas holding global ranks 0 and 8 (replicas 0 and 1).
+1. Rank 定义：Rollout 配置中的 ranks 为全局 GPU rank（与训练角色一致）。由于每个 rollout 实例（replica）跨越 ``world_size = tensor_model_parallel_size * data_parallel_size * pipeline_model_parallel_size`` 个 GPU，每个指定的 rank 会被映射到拥有它的实例（``replica = rank // world_size``），并对整个实例进行采集；例如 ``tp=8`` 时，``ranks: [0, 8]`` 会采集持有全局 rank 0 和 8 的实例（即 replica 0 和 replica 1）。
 
-2. Inference Engine Support: Currently, vLLM and SGLang engines are supported without additional settings. Specific details are as follows:
+2. 推理引擎支持：当前支持vLLM和SGLang引擎，无需额外设置。具体说明如下：
 
-   - vLLM Engine: Automatically collects AsyncLLM scheduling stacks and inference process performance data. Does not support setting analysis (defaults to no analysis, requires offline analysis) and profiler_level (defaults to level1).
-   - SGLang Engine: Automatically collects inference process performance data. Does not support the memory option in contents. Does not support setting analysis (defaults to enabled) and profiler_level (defaults to level0).
+   - vLLM 引擎：自动采集 AsyncLLM 调度栈及推理进程性能数据。不支持设置 analysis（默认不解析，需离线解析）和 profiler_level（默认 level1）。
+   - SGLang 引擎：自动采集推理进程性能数据。不支持 contents 中的 memory 配置项。不支持设置 analysis（默认解析）和 profiler_level（默认 level0）。
 
-**Fully Async Policy Mode Description**:
+**Fully Async Policy 模式说明**：
 
-1. In `Fully Async Policy <https://verl.readthedocs.io/en/latest/advance/fully_async.html>`_ mode, ``global_profiler.steps`` refers to the step after each ``update_weights`` round, which is consistent with synchronous mode, not a per mini-batch step within a single training round.
+1. 在 `Fully Async Policy <https://verl.readthedocs.io/en/latest/advance/fully_async.html>`_ 模式下，`global_profiler.steps` 代表每一轮`update_weights`后的`step`，这点和同步模式下保持同步，而非单轮的`mini-batch step`。
 
-2. Because it reuses AgentLoop collection capabilities, the notes for `Fully Async Policy <https://verl.readthedocs.io/en/latest/advance/fully_async.html>`_ mode are the same as for AgentLoop.
+2. 因为复用AgentLoop采集能力，因此在 `Fully Async Policy <https://verl.readthedocs.io/en/latest/advance/fully_async.html>`_ 模式下的注意事项和AgentLoop相同。
 
-Visualization
--------------
+可视化
+------
 
-Collected data is stored in the user-defined save_path and can be visualized using the `MindStudio Insight <https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0002.html>`_ tool.
+采集后的数据存放在用户设置的save_path下，可通过 `MindStudio Insight <https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0002.html>`_ 工具进行可视化。
 
-Additionally, in a Linux environment, the MindStudio Insight tool is provided in the form of a `JupyterLab Plugin <https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0130.html>`_, offering a more intuitive and highly interactive user interface. The advantages of the JupyterLab plugin are as follows:
+另外在Linux环境下，MindStudio Insight工具提供了 `JupyterLab插件 <https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0130.html>`_ 形态，提供更直观和交互性强的操作界面。JupyterLab插件优势如下：
 
-- Seamless integration: Supports running the MindStudio Insight tool directly within the Jupyter environment, eliminating the need to switch platforms or copy data from the server, enabling data to be collected and used immediately.
-- Fast startup: Allows MindStudio Insight to be launched quickly via the JupyterLab command line or graphical interface.
-- Smooth operation: In a Linux environment, launching MindStudio Insight through JupyterLab effectively resolves lag issues compared to full-package communication, significantly improving the operation experience.
-- Remote access: Supports remotely launching MindStudio Insight. Users can connect to the service via a local browser for direct visual analysis, reducing the difficulty of uploading and downloading data during large-model training or inference.
+- 无缝集成：支持在Jupyter环境中直接运行MindStudio Insight工具，无需切换平台，无需拷贝服务器上的数据，实现数据即采即用。
+- 快速启动：通过JupyterLab的命令行或图形界面，可快速启动MindStudio Insight工具。
+- 运行流畅：在Linux环境下，通过JupyterLab环境启动MindStudio Insight，相较于整包通信，有效解决了运行卡顿问题，操作体验显著提升。
+- 远程访问：支持远程启动MindStudio Insight，可通过本地浏览器远程连接服务直接进行可视化分析，缓解了大模型训练或推理数据上传和下载的困难。
 
-If the analysis parameter is set to False, offline parsing is required after data collection:
+如果analysis参数设置为False，采集之后需要进行离线解析：
 
 .. code:: python
 
     import torch_npu
-    # Set profiler_path to the parent directory of the "localhost.localdomain_<PID>_<timestamp>_ascend_pt" folder
+    # profiler_path请设置为"localhost.localdomain_<PID>_<timestamp>_ascend_pt"目录的上一级目录
     torch_npu.profiler.profiler.analyse(profiler_path=profiler_path)
 
 
-Advanced Guide: Fine-grained Collection
----------------------------------------
+进阶指南：精细化采集
+--------------------
 
-Background and Challenges
-~~~~~~~~~~~~~~~~~~~~~~~~~
+背景与挑战
+~~~~~~~~~~
 
-Although the configuration-based collection method mentioned above is convenient, it faces challenges in training scenarios with **Long Context** or **Large Global Batch Size**.
-Within a complete training step (Step), model computation exhibits high-frequency and repetitive characteristics:
+上述基于配置文件的采集方式虽然便捷，但在 **长序列 (Long Context)** 或 **大全局批量 (Large Global Batch Size)** 的训练场景中面临挑战。
+在一个完整的训练步 (Step) 内，模型计算呈现出高频次、重复性的特征：
 
-1. Rollout phase: Sequence generation (Generate Sequence) is an autoregressive process involving thousands of forward computations of the Decoder model.
-2. Training phase: To control peak memory usage, verl typically adopts a Micro-Batch strategy, dividing large data streams into multiple micro-batches for computation.
+1. Rollout 阶段：序列生成 (Generate Sequence) 是一个自回归过程，涉及成千上万次 Decoder 模型的前向计算。
+2. Training 阶段：为了控制显存峰值，verl 通常采用 Micro-Batch 策略，将庞大的数据流切分为多个微批次进行计算。
 
-   - compute_log_prob (Actor/Ref): Involves multiple rounds of pure forward propagation.
-   - update_policy (Actor/Critic): Involves multiple rounds of forward and backward propagation.
+   - compute_log_prob (Actor/Ref)：涉及多轮纯前向传播。
+   - update_policy (Actor/Critic)：涉及多轮前向与反向传播。
 
-This characteristic leads to massive and repetitive operator records from full profiling. As shown in the image below:
+这种特性会导致全量 Profiling 产生海量且重复的算子记录。如下图所示：
 
 .. image:: https://raw.githubusercontent.com/mengchengTang/verl-data/master/verl_ascend_profiler.png
+   :alt: 全量 Profiling 产生海量重复算子记录示意图
 
-Even with ``discrete`` mode enabled, performance data files for a single stage can still reach several TB, leading to **parsing failures** or **visualization tool lag**.
+即使使用了 ``discrete`` 模式，单个阶段的性能数据文件仍可能达到数 TB，导致 **解析失败** 或 **可视化工具卡顿**。
 
-Solution: Critical Path Sampling
+解决方案：关键路径采样
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To solve the above problems, we can adopt a **Critical Path Sampling** strategy: Based on the API interface provided by `torch_npu.profiler <https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0038.html>`_ , directly modify Python source code to collect only representative data segments (such as specific Decode Steps or the first Micro-Batch).
+为了解决上述问题，我们可以采用 **关键路径采样** 策略：基于 `torch_npu.profiler <https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0038.html>`_ 提供的API接口，直接修改 Python 源码，仅采集具有代表性的数据片段（如特定 Decode Step 或首个 Micro-Batch）。
 
-    **Important Notes**
+    **重要提示**
 
-    1. This chapter involves direct source code modification. It is recommended to back up files before modification and restore them after debugging.
-    2. When using code instrumentation for collection, be sure to **disable global collection** (``global_profiler: steps: null``) in ``ppo_trainer.yaml`` or ``ppo_megatron_trainer.yaml`` to avoid Profiler conflicts.
+    1. 本章节涉及直接修改源码。建议修改前备份文件，调试完成后恢复。
+    2. 使用代码插桩采集时，请务必在 ``ppo_trainer.yaml`` 或 ``ppo_megatron_trainer.yaml`` 中**禁用全局采集** (``global_profiler: steps: null``)，以避免 Profiler 冲突。
 
-1. Add Script to Control Collection Granularity
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. 添加脚本控制采集粒度
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: bash
 
-    export PROFILE_STEP=2 # Collect specified steps
+    export PROFILE_STEP=2 # 采集指定步数
     export ROLLOUT_PROFILE=true
     export UPDATE_PROFILE=true
-    export WITH_MODULES=false # Collect Python call stack
-    export WITH_STACK=false # Collect operator call stack
-    export WITH_MEMORY=false # Collect memory
-    export WITH_SHAPE=true # Collect tensor shapes
-    export PROFILE_RANKS=0 # Collect rank 0
+    export WITH_MODULES=false # 采集python调用栈
+    export WITH_STACK=false # 采集算子调用栈
+    export WITH_MEMORY=false # 采集内存
+    export WITH_SHAPE=true # 采集张量形状
+    export PROFILE_RANKS=0 # 采集rank0
     export UPDATE_PROFILE_PATH="./outputs/update_profile"
     export ROLLOUT_PROFILE_PATH="./outputs/rollout_profile"
 
-2. Fine-grained Collection in Rollout Phase
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2. Rollout 阶段精细化采集
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For vLLM or SGLang inference engines, we can control the ``schedule`` parameter to collect model forward propagation performance data for specific tokens.
+对于 vLLM 或 SGLang 推理引擎，我们可以通过控制 ``schedule`` 参数来控制采集模型在特定token的前向传播性能数据。
 
-**vLLM Engine**
+**vLLM 引擎**
 
-- **Reference Version**: vLLM v0.18.0, vLLM-Ascend v0.18.1
-- **Modified File**: ``vllm-ascend/vllm_ascend/worker/worker.py``
+- **参考版本**：vLLM v0.18.0, vLLM-Ascend v0.18.1
+- **修改文件**：``vllm-ascend/vllm_ascend/worker/worker.py``
 
 .. code-block:: diff
 
       class NPUWorker(WorkerBase):
-  
+
           def __init__(self, *args, **kwargs):
               # ... existing code ...
-  +           # Profile collection
+
+  +           # profile采集
   +           import os
   +           import torch_npu
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
@@ -297,13 +295,14 @@ For vLLM or SGLang inference engines, we can control the ``schedule`` parameter 
   +                   record_shapes=os.environ.get('WITH_SHAPE', "false") == "true",
   +                   with_stack=os.environ.get('WITH_STACK', "false") == "true",
   +                   experimental_config=experimental_config,
-  +                   # Skip the first 29 steps, warmup 1 step, collect 30 steps, repeat 1 time.
+  +                   # 跳过前29步，warmup一步，采集30步，重复1次。
   +                   schedule=torch_npu.profiler.schedule(wait=29, warmup=1, active=30, repeat=1),
-  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # Data save path, whether to parse online
+  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # 采集数据保存路径，是否在线解析
   +               )
   +               self.profiler_npu.start()
+
               # ... existing code ...
-  
+
           def execute_model(self, scheduler_output=None, intermediate_tensors=None, **kwargs):
               # ... existing code ...
               output = self.model_runner.execute_model(scheduler_output,
@@ -311,25 +310,26 @@ For vLLM or SGLang inference engines, we can control the ``schedule`` parameter 
 
   +           import os
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
-  +               self.profiler_npu.step()  # Drive schedule to collect partial decode steps
+  +               self.profiler_npu.step()  # 驱动 schedule，对部分decode step进行采集
 
               # ... existing code ...
 
-**SGLang Engine**
+**SGLang 引擎**
 
-- **Reference Version**: SGLang master branch
-- **Modified File**: ``sglang/python/sglang/srt/model_executor/model_runner.py``
+- **参考版本**：SGLang master 分支
+- **修改文件**：``sglang/python/sglang/srt/model_executor/model_runner.py``
 
 .. code-block:: diff
 
       # ... existing imports ...
   +   import torch_npu
-  
+
       class ModelRunner:
-  
+
           def __init__(self, *args, **kwargs):
               # ... existing init code ...
-  +           # Profile collection
+
+  +           # profile采集
   +           import os
   +           import torch_npu
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
@@ -345,38 +345,39 @@ For vLLM or SGLang inference engines, we can control the ``schedule`` parameter 
   +                   record_shapes=os.environ.get('WITH_SHAPE', "false") == "true",
   +                   with_stack=os.environ.get('WITH_STACK', "false") == "true",
   +                   experimental_config=experimental_config,
-  +                   # Skip the first 29 steps, warmup 1 step, collect 30 steps, repeat 1 time.
+  +                   # 跳过前29步，warmup一步，采集30步，重复1次。
   +                   schedule=torch_npu.profiler.schedule(wait=29, warmup=1, active=30, repeat=1),
-  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # Data save path, whether to parse online
+  +                   on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('ROLLOUT_PROFILE_PATH'), analyse_flag=True)  # 采集数据保存路径，是否在线解析
   +               )
   +               self.profiler_npu.start()
+
           def forward(self, forward_batch, **kwargs):
               # ... existing code ...
 
   +           import os
   +           if os.environ.get('ROLLOUT_PROFILE', "false") == "true":
-  +               self.profiler_npu.step()  # Drive schedule to collect partial decode steps
+  +               self.profiler_npu.step()  # 驱动 schedule，对部分decode step进行采集
 
               return output
 
-3. Fine-grained Collection in update_policy (Actor & Critic) Phase
+3. update_policy (Actor & Critic) 阶段精细化采集
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Update phase includes forward and backward propagation. In the unified model engine, mini-batch iteration is driven by
-``TrainingWorker.train_mini_batch`` in ``verl/workers/engine_workers.py``,
-which calls ``train_batch`` for each mini-batch.
+Update 阶段包含前向和反向传播。统一模型引擎下，mini-batch 循环由
+``verl/workers/engine_workers.py`` 中的 ``TrainingWorker.train_mini_batch``
+驱动，它会对每个 mini-batch 调用 ``train_batch``。
 
-**FSDP Backend**
+**FSDP 后端**
 
-The FSDP backend supports collection at both Mini-Batch and Micro-Batch granularities.
-For Mini-Batch scope, instrument ``TrainingWorker.train_mini_batch``;
-For Micro-Batch scope, instrument the micro-batch loop inside the FSDP engine's
-``forward_backward_batch``.
+FSDP 后端支持设置对 Mini-Batch 和 Micro-Batch 的粒度进行采集。
+Mini-Batch 级别请插桩 ``TrainingWorker.train_mini_batch``；
+Micro-Batch 级别请插桩 FSDP 引擎的 ``forward_backward_batch`` 中的
+micro-batch 循环。
 
-- **Modified File**: ``verl/workers/engine_workers.py``
-  (``TrainingWorker.train_mini_batch``, Mini-Batch granularity) or
+- **修改文件**：``verl/workers/engine_workers.py``
+  （``TrainingWorker.train_mini_batch``，Mini-Batch 粒度）或
   ``verl/workers/engine/fsdp/transformer_impl.py``
-  (``FSDPEngineWithLMHead.forward_backward_batch``, Micro-Batch granularity)
+  （``FSDPEngineWithLMHead.forward_backward_batch``，Micro-Batch 粒度）
 
 .. code-block:: diff
 
@@ -392,7 +393,7 @@ For Micro-Batch scope, instrument the micro-batch loop inside the FSDP engine's
   +          import os
   +          import torch_npu
   +          if self.step == int(os.environ.get('PROFILE_STEP', 1)) and os.environ.get('UPDATE_PROFILE', "false") == "true":
-  +              # Prepare profiler
+  +              # 准备 profiler
   +              experimental_config = torch_npu.profiler._ExperimentalConfig(
   +                  profiler_level=torch_npu.profiler.ProfilerLevel.Level1,
   +              )
@@ -403,7 +404,7 @@ For Micro-Batch scope, instrument the micro-batch loop inside the FSDP engine's
   +                  record_shapes=os.environ.get('WITH_SHAPE', "false") == "true",
   +                  with_stack=os.environ.get('WITH_STACK', "false") == "true",
   +                  experimental_config=experimental_config,
-  +                  # Only collect the first Mini Batch (including all Micro-Batch computations and one optimizer update)
+  +                  # 仅采集第一个 Mini Batch（包含所有 Micro-Batch 的计算和一次优化器更新）
   +                  schedule=torch_npu.profiler.schedule(wait=0, warmup=0, active=1, repeat=1),
   +                  on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(os.environ.get('UPDATE_PROFILE_PATH'), analyse_flag=True)
   +              )
@@ -411,48 +412,47 @@ For Micro-Batch scope, instrument the micro-batch loop inside the FSDP engine's
   +                  self.prof_npu.start()
 
              for batch_idx, mini_batch_td in enumerate(dataloader):
-                 # ... internally calls self.train_batch(mini_batch_td), which in the engine
-                 # runs Forward & Backward on each micro-batch and completes one optimizer update ...
+                 # ... 内部调用 self.train_batch(mini_batch_td)，后者在引擎内部
+                 # 对每个 micro-batch 执行 Forward & Backward，并完成一次优化器更新 ...
                  actor_output = self.train_batch(mini_batch_td)
 
   +              if self.step == int(os.environ.get('PROFILE_STEP', 1)) and os.environ.get('UPDATE_PROFILE', "false") == "true":
-  +                  # Drive schedule to collect mini batch; for micro-batch granularity, move self.prof_npu.step() into the micro_batch loop
+  +                  # 驱动 schedule，对mini batch进行采集，如果想对micro batch进行，则将self.prof_npu.step()移动到micro_batch的循环内
   +                  if str(torch.distributed.get_rank()) in os.environ.get('PROFILE_RANKS', "0").split(','):
   +                      self.prof_npu.step()
-  +          # This mini batch ends
+  +          # 此mini batch结束
   +          self.step += 1
 
 
-**Megatron Backend**
+**Megatron 后端**
 
-The Megatron backend supports collection at the Mini-Batch granularity, with the same entry point
-``TrainingWorker.train_mini_batch``: The Megatron engine internally runs Megatron
-pipeline-parallel forward/backward schedule and one optimizer step.
+Megatron 后端支持以 Mini-Batch 的粒度进行采集，入口同样是
+``TrainingWorker.train_mini_batch``：Megatron 引擎内部会调用 Megatron 的
+流水并行 forward/backward 调度并执行一次优化器 step。
 
-- **Modified File**: ``verl/workers/engine_workers.py``
-  (``TrainingWorker.train_mini_batch``) -- identical to the FSDP snippet above;
-  it is recommended to rename the output directory (e.g. ``./outputs/megatron_actor_update_profile``)
-  to distinguish traces from different backends.
+- **修改文件**：``verl/workers/engine_workers.py``
+  （``TrainingWorker.train_mini_batch``）—— 与上方 FSDP 代码片段完全一致，
+  建议将输出目录改名（例如 ``./outputs/megatron_actor_update_profile``）
+  以区分不同后端的 trace。
 
-
-4. Fine-grained Collection in compute_log_prob (Actor & Ref) Phase
+4. compute_log_prob (Actor & Ref) 阶段精细化采集
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This phase computes probability distributions for new and old policies. In the unified model engine, both actor and ref log-prob
-computation goes through ``TrainingWorker.infer_batch``, which dispatches to the corresponding backend engine
-``BaseEngine.infer_batch``.
+该阶段计算新旧策略的概率分布。统一模型引擎下，actor 和 ref 的 log-prob
+计算都走 ``TrainingWorker.infer_batch``，最终分发到对应后端引擎的
+``BaseEngine.infer_batch`` 上。
 
-**FSDP Backend**
+**FSDP 后端**
 
-The FSDP backend allows fine-grained control at the Micro-Batch level. Instrument the micro-batch loop inside the FSDP engine forward pass.
+FSDP 后端允许在 Micro-Batch 级别进行精细控制，可在 FSDP 引擎 forward 过程
+的 micro-batch 循环内插桩。
 
-
-- **Modified File**: ``verl/workers/engine/fsdp/transformer_impl.py``
-  (``FSDPEngineWithLMHead.forward_backward_batch`` / ``forward_step``)
+- **修改文件**：``verl/workers/engine/fsdp/transformer_impl.py``
+  （``FSDPEngineWithLMHead.forward_backward_batch`` / ``forward_step``）
 
 .. code-block:: diff
 
-      # ... import dependencies ...
+      # ... 引入依赖 ...
   +   import torch_npu
 
       class FSDPEngineWithLMHead(FSDPEngine):
@@ -460,37 +460,35 @@ The FSDP backend allows fine-grained control at the Micro-Batch level. Instrumen
           def forward_backward_batch(self, data: TensorDict, loss_function, forward_only=False):
 
   +           role = "Ref" if forward_only and not self.optimizer_config else "Actor"
-  +           # Prepare profiler (same configuration as above, omitted)
+  +           # 准备 profiler (配置同上，略)
   +           experimental_config = torch_npu.profiler._ExperimentalConfig(...)
   +           self.prof_npu = torch_npu.profiler.profile(
-  +               # ... (same configuration as above, omitted)
-  +               # wait=0, warmup=0, active=1: directly collect first micro-batch
+  +               # ...  (配置同上，略)
+  +               # wait=0, warmup=0, active=1: 直接采集第一个 micro-batch
   +               schedule=torch_npu.profiler.schedule(wait=0, warmup=0, active=1, repeat=1),
   +               on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(f"./outputs/{role}_compute_log_prob", analyse_flag=True)
   +           )
 
-  +           # forward_backward_batch is shared by ref and actor; use the role flag to distinguish;
-  +           # To collect actor_compute_log_prob, switch to role == "Actor":
+  +           # forward_backward_batch 被 ref 和 actor 共用，通过 role 标志位区分；
+  +           # 如需采集 actor_compute_log_prob，可改为 role == "Actor":
   +           if role == "Ref":
   +               self.prof_npu.start()
 
               for micro_batch in micro_batches:
 
-                  # ... original computation logic ...
+                  # ... 原始计算逻辑 ...
                   with torch.no_grad():
                       output = self.forward_step(micro_batch, loss_function, forward_only=True)
 
-  +                   # Drive schedule to collect micro batch
+  +                   # 驱动 schedule，对micro batch进行采集
   +                   if role == "Ref":
   +                       self.prof_npu.step()
 
                   # ...
 
 
-**Megatron Backend**
+**Megatron 后端**
 
-The Micro-Batch scheduling in the Megatron backend is managed internally
-by Megatron's pipeline-parallel ``forward_backward_func`` and does not
-currently support fine-grained collection at the Micro-Batch level
-through simple code instrumentation. It is recommended to use the global
-profiler configuration for collection.
+Megatron 后端的 Micro-Batch 调度由 Megatron 的流水并行
+``forward_backward_func`` 内部管理，暂不支持通过简单的代码插桩进行
+Micro-Batch 级别的精细化采集。建议使用全局 profiler 配置进行采集。
