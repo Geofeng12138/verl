@@ -2,7 +2,7 @@
 
 Last updated: 07/02/2026.
 
-To view NPU-related features, visit the [NPU Advanced Features Guide](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/feature_support/npu_advance_features.md).
+To view NPU-related features, refer to the [NPU Advanced Features Guide](../../feature_support/npu_advance_features.md).
 
 verl manages all parameters using hierarchical YAML configuration files. All related configuration files are located in the `verl/trainer/config` directory.
 

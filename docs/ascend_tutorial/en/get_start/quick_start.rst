@@ -120,9 +120,9 @@ Quick Start provides four common training and rollout backend combinations. You 
      - SGLang
      - bash tests/special_npu/quick_start/run_qwen3_0_6b_megatron_sglang_ascend.sh
 
-For details about the parameters in the script, refer to `Training Configuration Parameters and Metrics <https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/dev_guide/model_dev/parameter_and_metrics.md>`_
+For detailed descriptions of the parameters in the script, see `Training Configuration Parameters and Metrics <../dev_guide/model_dev/parameter_and_metrics.md>`_
 
-For details about launching multi-node tasks, refer to `Multi-Machine Task Startup Guide <https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/model_support/examples/multi-machine_task_startup_practice.rst>`_.
+For details on multi-node task startup, refer to the `Multi-machine Task Startup Guide <../model_support/examples/multi-machine_task_startup_practice.rst>`_.
 
 SGLang backend enablement instructions
 -------------------------------------------

@@ -5,7 +5,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: verl-docs\n"
 
-"X-Source-Commit: a6752c137a00447138396e68f687679c62f34fa1\n"
+"POT-Creation-Date: 2026-09-03 20:39+0800\n"
+"PO-Revision-Date: 2026-09-03 20:39+0800\n"
+
+"X-Source-Commit: 69dd932120cf4acdcb913b3411d17da3d8587a7c\n"
 
 "X-Skill-Version: 2.2.0\n"
 
@@ -175,13 +178,6 @@ msgid ""
 ""
 msgstr ""
 "## Hardware Requirements\n"
-""
-
-msgid ""
-"当前支持Atlas 800T A3 与 Atlas 900 A3 SuperPoD。完成跑完本次最佳实践需要 1 台 Atlas 900 A3 SuperPoD。关键软件版本可以参考：[昇腾快速上手说明](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/get_start/quick_start.rst)\n"
-""
-msgstr ""
-"Currently, the Atlas 800T A3 and Atlas 900 A3 SuperPoD are supported. You need one Atlas 900 A3 SuperPoD to complete this best practice. For key software versions, refer to the [Ascend Quick Start Guide](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/get_start/quick_start.rst).\n"
 ""
 
 msgid ""
@@ -756,4 +752,11 @@ msgstr ""
 "# Expert parallelism configuration for the Actor model in the MoE architecture\n"
 "actor_rollout_ref.rollout.expert_parallel_size=8\n"
 "```\n"
+""
+
+msgid ""
+"当前支持Atlas 800T A3 与 Atlas 900 A3 SuperPoD。完成跑完本次最佳实践需要 1 台 Atlas 900 A3 SuperPoD。关键软件版本可以参考：[昇腾快速上手说明](../../get_start/quick_start.rst)\n"
+""
+msgstr ""
+"Currently, Atlas 800T A3 and Atlas 900 A3 SuperPoD are supported. To complete this best practice, you need one Atlas 900 A3 SuperPoD. For key software versions, refer to [Ascend Quick Start Guide](../../get_start/quick_start.rst).\n"
 ""
