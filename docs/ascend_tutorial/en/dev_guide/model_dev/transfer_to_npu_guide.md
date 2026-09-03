@@ -11,7 +11,7 @@ Set up a basic environment that supports NPU execution. This ensures models load
 
 ### 1.1 Software and Hardware Environment and Dependency Configuration
 
-Refer to the official documentation [Ascend Installation Guide](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/get_start/install_guidance.rst); if the versions of the inference engines vllm and vllm_ascend, and the training engines Megatron, MindSpeed, and transformers that the model depends on differ from those in the tutorial, **use the versions actually adapted for the model.**
+Refer to the official documentation [Ascend Installation Guide](../../get_start/install_guidance.rst); if the versions of the inference engines vllm and vllm_ascend and the training engines Megatron, MindSpeed, and transformers required by the model differ from the tutorial, **use the actual adapted versions of the model**.
 
 ### 1.2 Model Weights
 
@@ -23,7 +23,7 @@ Refer to [Prepare Data for Post-Training](https://verl.readthedocs.io/en/latest/
 
 ## 2. Integration and joint debugging of all components
 
-The VeRL framework adopts a decoupled architecture design that separates the inference engine, training engine, and weight synchronization bridge (Checkpoint Engine). This design achieves deep separation of computation and data, providing a flexible extension foundation for migrating and adapting models to the Ascend NPU. When performing model migration and adaptation on the NPU, first complete the individual adaptation and verification of each component. These components include the inference engine, training engine, and Megatron-Bridge. After each component runs stably, proceed with the integration and debugging of the entire VeRL pipeline. For specific feature support of different VeRL inference and training backends on the Ascend NPU, refer to the [Ascend Backend Feature Guide](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/feature_support/ascend_backend_features.md).
+The VeRL framework adopts a decoupled architecture design that separates the inference engine, training engine, and weight synchronization bridge (Checkpoint Engine). This design enables deep separation of computation and data, providing a flexible extension foundation for migrating and adapting models to Ascend NPU. When performing model migration and adaptation on the NPU, we recommend that you first complete the separate adaptation and verification of each component. These components include the inference engine, training engine, and Megatron-Bridge. After each component runs stably, proceed with the integration and debugging of the end-to-end VeRL pipeline. For specific feature support of different VeRL inference and training backends on Ascend NPU, refer to the [Ascend Backend Feature Guide](../../feature_support/ascend_backend_features.md).
 
 ### 2.1 Inference Engine Adaptation
 
@@ -54,7 +54,7 @@ Therefore, you must manually modify and adapt the weight conversion logic to ens
 
 ### 2.4 End-to-end network functionality verification
 
-Complete the inference engine adaptation verification and training engine adaptation development. Refer to [Training Configuration Parameters and Metrics](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/dev_guide/model_dev/parameter_and_metrics.md) to configure the relevant parameters of the inference engine and training engine based on actual business requirements. Complete the VeRL end-to-end network function integration to ensure stable operation of the entire pipeline.
+Complete the inference engine adaptation verification and training engine adaptation development. Refer to [Training Configuration Parameters and Metrics](parameter_and_metrics.md) and configure the relevant parameters for the inference engine and training engine based on actual business requirements. Complete the VeRL end-to-end network function integration to ensure stable operation of the entire process.
 
 ## 3. Precision Alignment
 

@@ -36,7 +36,7 @@ Atlas 900 A2 PODc
 
 Atlas 800T A3
 
-`Ascend 950 series products <https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/get_start/install_guidance_A5.rst>`_
+`Ascend 950 series products <install_guidance_A5.rst>`_
 
 
 Framework Backend Support
@@ -90,8 +90,8 @@ MindSpeed     ``core_r0.16.0``                        Adaptation and optimizatio
 ============= ======================================= ===================
 
 
-Pre-installation preparation (HDK & CANN)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Preparation before installation (HDK & CANN)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 CANN is the heterogeneous computing architecture for NPUs. The following are the installation commands for A3 on the ARM platform. Follow these commands to download and install HDK and CANN. Alternatively, download and install them from the `CANN community <https://www.hiascend.com/cann/download?versionId=723&ids=d803%2Ch0501%2Ch0601%2Ch0702>`_ based on your system hardware model.
 

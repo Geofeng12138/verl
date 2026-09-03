@@ -61,7 +61,7 @@ For the code related to the relevant parameters, refer to [Recipe: Decoupled Cli
 ## Hardware Requirements
 
 
-Currently, the Atlas 800T A3 and Atlas 900 A3 SuperPoD are supported. You need one Atlas 900 A3 SuperPoD to complete this best practice. For key software versions, refer to the [Ascend Quick Start Guide](https://github.com/verl-project/verl/blob/main/docs/ascend_tutorial/zh/get_start/quick_start.rst).
+Currently, Atlas 800T A3 and Atlas 900 A3 SuperPoD are supported. To complete this best practice, you need one Atlas 900 A3 SuperPoD. For key software versions, refer to [Ascend Quick Start Guide](../../get_start/quick_start.rst).
 
 
 ## Installing the Basic Environment
