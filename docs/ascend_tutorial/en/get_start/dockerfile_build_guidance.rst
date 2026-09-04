@@ -7,7 +7,7 @@ Last updated: 08/10/2026.
 Obtaining Images and Public Image Addresses
 -------------------------------------------
 
-Ascend hosts daily built A2/A3 images in `quay.io/ascend/verl <https://quay.io/repository/ascend/verl?tab=tags&tag=latest>`_, built using the `Dockerfile <../../../../docker/ascend>`_. For details, refer to :ref:`Dockerfile Image Build Script List <ascend-dockerfile-list>`.
+Ascend hosts daily built A2/A3 images in `quay.io/ascend/verl <https://quay.io/repository/ascend/verl?tab=tags&tag=latest>`_, built using the `Dockerfile <../../../../docker/ascend>`_. For details, See Dockerfile Image Build Script.
 
 Daily build image name format: latest-{inference backend}-{applicable product information}-{operating system}-{other fields}
 
