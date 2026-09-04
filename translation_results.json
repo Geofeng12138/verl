@@ -1,10 +1,10 @@
 {
   "success_files": [
-    "docs\\ascend_tutorial\\en\\feature_support\\npu_advance_features.md",
-    "docs\\ascend_tutorial\\locale\\en\\LC_MESSAGES\\feature_support\\npu_advance_features.po"
+    "docs\\ascend_tutorial\\en\\get_start\\install_guidance.rst",
+    "docs\\ascend_tutorial\\locale\\en\\LC_MESSAGES\\get_start\\install_guidance.po"
   ],
   "failed_files": [],
-  "timestamp": "2026-09-04 17:05:26",
+  "timestamp": "2026-09-04 17:16:49",
   "total_files": 1,
   "success_count": 1,
   "failed_count": 0

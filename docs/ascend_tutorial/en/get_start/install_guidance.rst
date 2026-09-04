@@ -19,13 +19,13 @@ Key Updates
 Contents
 --------
 
-- `Hardware Support <#硬件支持>`_
-- `Framework Backend Support Notes <#框架后端支持说明>`_
-- `Deployment Guide <#部署指南>`_
-   - `Getting, Building, and Using Docker Images <#1-docker镜像获取构建和使用>`_
-   - `Custom Installation - vLLM + FSDP/Megatron <#2-自定义安装-vllm--fsdpmegatron>`_
-   - `Custom Installation - SGLang + FSDP/Megatron <#3-自定义安装-sglang--fsdpmegatron>`_
-- `Appendix <#附录>`_
+- `Hardware Support <#hardware-support>`_
+- `Framework Backend Support Notes <#framework-backend-support>`_
+- `Deployment Guide <#deployment-guide>`_
+   - `Getting, Building, and Using Docker Images <#1-obtaining-building-and-using-docker-images>`_
+   - `Custom Installation - vLLM + FSDP/Megatron <#2-custom-installation---vllm--fsdpmegatron>`_
+   - `Custom Installation - SGLang + FSDP/Megatron <#3-custom-installation-sglang--fsdpmegatron>`_
+- `Appendix <#appendix>`_
 
 Hardware Support
 ----------------
