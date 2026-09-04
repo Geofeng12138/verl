@@ -46,7 +46,7 @@ For enabling and configuration tutorials, refer to the [Profiling Collection Gui
 
 - **Operation**: Using the rl_analysis feature of MSTT, generate a cluster Timeline thumbnail to observe the overall duration of each stage
 - **Value**: Gain a macro-level understanding of cluster performance bottlenecks
-- **User guide**: [rl_analysis documentation](https://gitcode.com/Ascend/mstt/raw/pre-research/profiler/msprof_analyze/docs/features/rl_analysis.md)
+- **User guide**: [rl_analysis documentation](https://gitcode.com/Ascend/mstt/blob/pre-research/profiler/msprof_analyze/docs/features/rl_analysis.md)
 - **Result demonstration**:
 
 ![Cluster%20Performance%20Analysis](https://github.com/chengminhua/verl_data/raw/main/MindStudio_Insight_use/Cluster%20Performance%20Analysis.png)
@@ -73,7 +73,7 @@ For enabling and configuration tutorials, refer to the [Profiling Collection Gui
 
 ##### **Performing in-depth memory analysis using the msleaks tool**
 
-- **Procedure**: Refer to the [msleaks Tool Usage Guide](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha003/devaids/msleaks/atlas_msleaks_0001.html).
+- **Procedure**: Refer to the [msleaks Tool Usage Guide](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/devaids/msMemScope/docs/en/memory_analysis.md).
 - **Value**: You can view the total framework memory allocation line chart and memory block diagrams, and directly map them to call stacks for in-depth analysis of framework memory usage.
 - **Result display**:
 
