@@ -196,9 +196,9 @@ In `Agent Loop <../../../../advance/agent_loop.rst>`_ mode, performance data dur
 Visualization
 -------------
 
-The collected data is stored in the save_path you set. You can visualize the data using the `MindStudio Insight <https://www.hiascend.com/document/detail/en/mindstudio/latest/visualization_tool/MindStudioInsight/docs/en/user_guide/mindstudio_insight_install_guide.md>`_ tool.
+The collected data is stored in the save_path you set. You can visualize the data using the `MindStudio Insight <https://www.hiascend.com/document/detail/zh/mindstudio/80RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0002.html>`_ tool.
 
-In addition, in Linux environments, the MindStudio Insight tool provides a `JupyterLab plugin <https://www.hiascend.com/document/detail/en/mindstudio/latest/visualization_tool/MindStudioInsight/docs/en/user_guide/mindstudio_insight_install_guide.md>`_ that offers a more intuitive and interactive user interface. The advantages of the JupyterLab plugin are as follows:
+In addition, in Linux environments, the MindStudio Insight tool provides a `JupyterLab plugin <https://www.hiascend.com/document/detail/zh/mindstudio/82RC1/GUI_baseddevelopmenttool/msascendinsightug/Insight_userguide_0130.html>`_ that offers a more intuitive and interactive user interface. The advantages of the JupyterLab plugin are as follows:
 
 - Seamless integration: You can run the MindStudio Insight tool directly in a Jupyter environment without switching platforms or copying server data. This enables data to be used as soon as it is collected.
 - Quick start: You can quickly start the MindStudio Insight tool through the command line or graphical interface of JupyterLab.
@@ -239,7 +239,7 @@ Even when you use the ``discrete`` mode, performance data files for a single sta
 Solution: Critical Path Sampling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To solve the preceding problems, you can adopt the **critical path sampling** strategy. By using the APIs provided by `torch_npu.profiler <https://www.hiascend.com/document/detail/en/Pytorch/latest/apiref/customapi/docs/en/custom_APIs/torch_npu-profiler/torch_npu-profiler-profile.md>`_, directly modify the Python source code. This allows you to collect only representative data fragments (for example, a specific Decode Step or the first Micro-Batch).
+To solve the preceding problems, you can adopt the **critical path sampling** strategy. By using the APIs provided by `torch_npu.profiler <https://www.hiascend.com/document/detail/zh/canncommercial/80RC2/devaids/auxiliarydevtool/atlasprofiling_16_0038.html>`_, directly modify the Python source code. This allows you to collect only representative data fragments (for example, a specific Decode Step or the first Micro-Batch).
 
     **Important**
 
