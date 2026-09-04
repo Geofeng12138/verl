@@ -93,7 +93,7 @@ MindSpeed     ``core_r0.16.0``                        Adaptation and optimizatio
 Preparation before installation (HDK & CANN)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-CANN is the heterogeneous computing architecture for NPUs. The following are the installation commands for A3 on the ARM platform. Follow these commands to download and install HDK and CANN. Alternatively, download and install them from the `CANN community <https://www.hiascend.com/en/cann/download?versionId=791&ids=d803%2Ch0501%2Ch0601%2Ch0703>`_ based on your system hardware model.
+CANN is the heterogeneous computing architecture for NPUs. The following are the installation commands for A3 on the ARM platform. Follow these commands to download and install HDK and CANN. Alternatively, download and install them from the `CANN community <https://www.hiascend.com/cann/download?versionId=723&ids=d803%2Ch0501%2Ch0601%2Ch0702>`_ based on your system hardware model.
 
 .. code:: bash
 
@@ -167,7 +167,7 @@ Preparation before installation (HDK & CANN)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 CANN is a heterogeneous computing architecture on the NPU. The following are the installation instructions for the ARM platform A3. Refer to the following instructions to download and install HDK and CANN,
-or download and install from the `CANN community <https://www.hiascend.com/en/cann/download?versionId=791&ids=d803%2Ch0501%2Ch0601%2Ch0703>`_ based on your system hardware model.
+or download and install from the `CANN community <https://www.hiascend.com/cann/download?versionId=680&ids=d803%2Ch0501%2Ch0601%2Ch0702>`_ based on your system hardware model.
 
 .. code:: bash
 
