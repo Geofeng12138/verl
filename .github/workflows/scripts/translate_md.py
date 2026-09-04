@@ -793,13 +793,16 @@ class DocTranslator:
         self.model = model or DEFAULT_MODEL
         # Per-request timeout and retry budget (env-tunable). Without a timeout
         # a hung request (slow gateway, stalled connection) would block the
-        # whole sequential translation for minutes per block.
-        self.client = AsyncOpenAI(
+        # whole sequential translation for minutes per block. When no API key
+        # is provided the client stays None so cache-only re-rendering works
+        # without network access; blocks needing fresh translation will fail
+        # closed with a clear message.
+        self.client = (AsyncOpenAI(
             api_key=api_key,
             base_url=self.api_base,
             timeout=float(os.getenv("LLM_TIMEOUT", "120")),
             max_retries=int(os.getenv("LLM_MAX_RETRIES", "1")),
-        )
+        ) if api_key else None)
         # Number of blocks translated concurrently per document. Raising this
         # shortens total runtime but may hit provider rate limits (429).
         self._concurrency = max(1, int(os.getenv("LLM_CONCURRENCY", "4")))
@@ -833,6 +836,10 @@ class DocTranslator:
 
     async def _translate_single(self, content: str, context: str = "") -> Optional[str]:
         """Translate a single text block via the configured LLM API."""
+        if self.client is None:
+            print(f"  No API key configured - block for '{context}' needs fresh translation, skipped",
+                  flush=True)
+            return None
         prompt = BLOCK_TRANSLATION_PROMPT.replace("{content}", content)
         system = self._system_prompt(context)
 
@@ -1099,10 +1106,9 @@ async def async_main():
         or os.getenv("DEEPSEEK_API_KEY")
     )
     if not api_key:
-        msg = "LLM API key not set (set TRANSLATION_ASCEND, LLM_API_KEY, or DEEPSEEK_API_KEY)"
-        print(f"Error: {msg}", flush=True)
-        write_empty_json(output_json, msg)
-        return 1
+        print("Warning: no LLM API key set (TRANSLATION_ASCEND / LLM_API_KEY / DEEPSEEK_API_KEY). "
+              "Documents whose blocks are fully cached will still be re-rendered; blocks that "
+              "need a fresh translation will fail (fail-closed).", flush=True)
 
     api_base = args.api_base or DEFAULT_API_BASE
     model = args.model or DEFAULT_MODEL
