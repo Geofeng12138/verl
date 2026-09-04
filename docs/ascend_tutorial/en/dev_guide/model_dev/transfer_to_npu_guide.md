@@ -35,7 +35,7 @@ Before running the full VeRL pipeline on the NPU, refer to the official model de
 
 The VeRL mainline code abstracts the training engine into the `Engine` class. This decouples the scheduling logic from the underlying training implementation through a standardized interface layer. This architectural design supports the flexible, plug-and-play integration of multiple training backends such as FSDP and Megatron. You do not need to modify the core algorithms and scheduling logic of VeRL, which significantly reduces the migration and adaptation costs.
 
-Currently, the system automatically detects the NPU device through the `is_npu_available` interface and applies the corresponding NPU device adaptation patch. You only need to configure model_engine=fsdp/megatron to switch the training backend to FSDP or Megatron. The system automatically loads the NPU adaptation logic for the corresponding backend, so you do not need to modify the code. Ascend adapts and optimizes Megatron in VeRL. For specific feature configurations, refer to the [verl-MindSpeed feature documentation](https://gitcode.com/Ascend/MindSpeed/blob/26.1.0_core_r0.12.1/docs/en/user-guide/verl.md).
+Currently, the system automatically detects the NPU device through the `is_npu_available` interface and applies the corresponding NPU device adaptation patch. You only need to configure model_engine=fsdp/megatron to switch the training backend to FSDP or Megatron. The system automatically loads the NPU adaptation logic for the corresponding backend, so you do not need to modify the code. Ascend adapts and optimizes Megatron in VeRL. For specific feature configurations, refer to the [verl-MindSpeed feature documentation](https://gitcode.com/Ascend/MindSpeed/blob/master/docs/zh/user-guide/verl.md).
 
 ### 2.3 Megatron-Bridge Adaptation
 
@@ -193,6 +193,7 @@ The rollout phase is the core inference step in large model RL training. Its inf
 
 The corresponding configuration parameters are as follows:
 
+```
 # Enable graph mode
 actor_rollout_ref.rollout.enforce_eager=False
 +actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.cudagraph_mode="FULL_DECODE_ONLY"
@@ -201,6 +202,7 @@ actor_rollout_ref.rollout.enforce_eager=False
 ++actor_rollout_ref.rollout.engine_kwargs.vllm.additional_config.enable_cpu_binding=True
 # Enable asynchronous scheduling
 ++actor_rollout_ref.rollout.engine_kwargs.vllm.async_scheduling=True
+```
 
 ### 4.2 Training Performance Optimization
 
