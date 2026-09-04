@@ -6,8 +6,8 @@ description: >-
   docs/ascend_tutorial/en/ 目录。翻译前必须先读取翻译标准
   （https://developers.google.com/style），遗漏此步骤会导致翻译不符合规范，
   需要返工修正。
-version: 2.2.0
-last-updated: 2026-08-29
+version: 1.0.0
+last-updated: 2026-09-04
 applicable-scope:
   - docs/ascend_tutorial/zh/** → docs/ascend_tutorial/en/** translation workflow
   - .github/workflows/scripts/translate_md.py DeepSeek translation
