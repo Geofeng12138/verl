@@ -336,8 +336,6 @@ The following content summarizes the tuning configurations of several global env
 
 Usage (note that you need to install the jemalloc library first): `export LD_PRELOAD=/usr/local/lib/libjemalloc.so.2`
 
-**Installation and usage guide:** [MindSpeed-RL/docs/install_guide.md · Ascend/MindSpeed-RL - AtomGit | GitCode](https://gitcode.com/Ascend/MindSpeed-RL/blob/master/docs/install_guide.md#高性能内存库-jemalloc-安装)
-
 #### Multi-stream multiplexing
 
 Memory usage is optimized.
@@ -409,6 +407,6 @@ actor_rollout_ref.rollout.enforce_eager=False \
 
 ## NPU Tuning Reference Articles
 
-For environment variables, refer to [Environment Variable List - Ascend Extension for PyTorch6.0.0 - Ascend Community](https://www.hiascend.com/document/detail/zh/Pytorch/600/apiref/Envvariables/Envir_001.html)
+For environment variables, refer to [Environment Variable List - Ascend Extension for PyTorch6.0.0 - Ascend Community](https://www.hiascend.com/document/detail/en/Pytorch/latest/apiref/ENV/docs/en/environment_variable_reference/env_variable_list.md)
 
-Community performance tuning tutorial: [Performance tuning process-Ascend Extension for PyTorch6.0.0-Ascend Community](https://www.hiascend.com/document/detail/zh/Pytorch/600/ptmoddevg/trainingmigrguide/performance_tuning_0001.html)
+Community performance tuning tutorial: [Performance tuning process-Ascend Extension for PyTorch6.0.0-Ascend Community](https://www.hiascend.com/document/detail/en/ModelZoo/traditional_model_train/PyTorch/docs/en/performance_tuning/performance_overview.md)
