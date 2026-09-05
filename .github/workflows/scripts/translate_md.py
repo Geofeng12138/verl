@@ -1040,10 +1040,17 @@ class DocTranslator:
             "success_count": ok_count,
             "failed_count": len(failed_files),
         }
-        out = Path(output_json)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"Results written to {output_json}", flush=True)
+        if output_json:
+            out = Path(output_json)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+            print(f"Results written to {output_json}", flush=True)
+        elif success_files:
+            # No results JSON requested: still print which files were produced
+            # so the user / CI can see / stage them.
+            print("Translated files:", flush=True)
+            for f in success_files:
+                print(f"  - {f}", flush=True)
 
         return 0 if ok_count > 0 else 1
 
@@ -1054,6 +1061,9 @@ class DocTranslator:
 
 
 def write_empty_json(output_json: str, reason: str = ""):
+    if not output_json:
+        print(f"No source files processed: {reason}", flush=True)
+        return
     report = {
         "success_files": [],
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -1075,7 +1085,8 @@ async def async_main():
     parser.add_argument("--all", action="store_true",
                         help="Incremental: translate only changed documents/blocks")
     parser.add_argument("--files", help="Comma-separated source file paths under docs/ascend_tutorial/zh")
-    parser.add_argument("--output-json", default=os.getenv("OUTPUT_JSON", "/tmp/translation_results.json"))
+    parser.add_argument("--output-json", default=os.getenv("OUTPUT_JSON", ""),
+                        help="Optional path to a results JSON file (default: no file is written)")
     parser.add_argument(
         "--api-key",
         default=os.getenv("TRANSLATION_ASCEND",
